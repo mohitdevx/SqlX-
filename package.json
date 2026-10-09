@@ -20,6 +20,7 @@
     "@codemirror/language": "^6.10.8",
     "@codemirror/state": "^6.5.1",
     "@codemirror/view": "^6.36.2",
+    "@lezer/highlight": "^1.2.5",
     "@tanstack/react-table": "^8.21.2",
     "@tanstack/react-virtual": "^3.13.0",
     "@tauri-apps/api": "^2.2.0",

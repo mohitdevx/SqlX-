@@ -47,10 +47,10 @@ export const SchemaTree: React.FC = () => {
       {/* Header Bar */}
       <div className="h-10 px-3 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
         <div className="flex items-center space-x-2">
-          <Database className="w-3.5 h-3.5 text-accent-primary" />
-          <span className="font-semibold text-tx-primary tracking-tight">Explorer</span>
+          <Database className="w-3.5 h-3.5 text-white/90" strokeWidth={1.5} />
+          <span className="font-semibold text-white tracking-tight">Explorer</span>
           {schemaTree && (
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-bg-elevated text-tx-muted">
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-bg-elevated text-tx-muted border border-border-subtle">
               {schemaTree.tables.length}
             </span>
           )}
@@ -58,23 +58,26 @@ export const SchemaTree: React.FC = () => {
         <button
           onClick={refreshSchema}
           disabled={!activeConnectionId || isLoading}
-          className="p-1 rounded text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-colors disabled:opacity-40"
+          className="p-1 rounded text-tx-muted hover:text-white hover:bg-bg-overlay transition-colors disabled:opacity-40"
           title="Refresh Schema"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`}
+            strokeWidth={1.5}
+          />
         </button>
       </div>
 
       {/* Search Filter */}
       <div className="p-2 border-b border-border-subtle bg-bg-surface">
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted" strokeWidth={1.5} />
           <input
             type="text"
-            placeholder="Search tables..."
+            placeholder="Filter tables..."
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono placeholder:text-tx-muted transition-colors"
+            className="w-full bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-white focus:outline-none focus:border-border-strong font-mono placeholder:text-tx-muted transition-colors"
           />
         </div>
       </div>
@@ -83,7 +86,7 @@ export const SchemaTree: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-2 font-mono text-[12px] space-y-1">
         {!activeConnectionId ? (
           <div className="p-6 text-center text-tx-muted space-y-2">
-            <p className="font-sans text-xs">No active database connection.</p>
+            <p className="font-sans text-xs">No active database connected.</p>
           </div>
         ) : !schemaTree ? (
           <div className="p-6 text-center text-tx-muted font-sans text-xs">
@@ -92,15 +95,15 @@ export const SchemaTree: React.FC = () => {
         ) : (
           <div className="space-y-0.5">
             {/* Database Node */}
-            <div className="flex items-center space-x-2 px-2 py-1.5 text-tx-primary font-semibold rounded bg-bg-overlay/50">
-              <Database className="w-3.5 h-3.5 text-accent-primary flex-shrink-0" />
+            <div className="flex items-center space-x-2 px-2 py-1.5 text-white font-medium rounded bg-bg-overlay/60">
+              <Database className="w-3.5 h-3.5 text-white/80 flex-shrink-0" strokeWidth={1.5} />
               <span className="truncate">{currentConn?.database || 'Database'}</span>
             </div>
 
             {/* Tables Group */}
             <div className="pt-1">
               <div className="flex items-center space-x-1.5 px-2 py-1 text-tx-muted text-[11px] font-sans font-semibold tracking-wider uppercase">
-                <Layers className="w-3 h-3" />
+                <Layers className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
                 <span>Tables ({filteredTables.length})</span>
               </div>
 
@@ -109,17 +112,20 @@ export const SchemaTree: React.FC = () => {
                   const isExpanded = !!expandedTables[table.name];
                   return (
                     <div key={table.name} className="space-y-0.5">
-                      <div className="group flex items-center justify-between px-2 py-1 text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay rounded-md cursor-pointer transition-colors">
+                      <div className="group flex items-center justify-between px-2 py-1 text-tx-secondary hover:text-white hover:bg-bg-overlay rounded-md cursor-pointer transition-colors">
                         <div
                           onClick={() => toggleTable(table.name)}
                           className="flex items-center space-x-1.5 truncate flex-1"
                         >
                           {isExpanded ? (
-                            <ChevronDown className="w-3 h-3 text-tx-muted" />
+                            <ChevronDown className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
                           ) : (
-                            <ChevronRight className="w-3 h-3 text-tx-muted" />
+                            <ChevronRight className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
                           )}
-                          <Table className="w-3.5 h-3.5 text-accent-primary/80 group-hover:text-accent-primary flex-shrink-0" />
+                          <Table
+                            className="w-3.5 h-3.5 text-white/70 group-hover:text-white flex-shrink-0"
+                            strokeWidth={1.5}
+                          />
                           <span className="truncate font-mono text-xs">{table.name}</span>
                         </div>
 
@@ -128,33 +134,33 @@ export const SchemaTree: React.FC = () => {
                             e.stopPropagation();
                             handleQuickSelect(table.name);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-accent-primary text-tx-muted transition-all rounded hover:bg-bg-elevated"
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-white text-tx-muted transition-all rounded hover:bg-bg-elevated"
                           title="Run SELECT * FROM table LIMIT 100"
                         >
-                          <Play className="w-3 h-3 fill-current" />
+                          <Play className="w-3 h-3 fill-current text-white/80" strokeWidth={1.5} />
                         </button>
                       </div>
 
-                      {/* Mock Expanded Table Columns Structure */}
+                      {/* Expanded Columns Preview */}
                       {isExpanded && (
                         <div className="ml-5 pl-2 border-l border-border-subtle py-1 space-y-1 font-mono text-[11px]">
-                          <div className="flex items-center justify-between pr-2 text-tx-muted hover:text-tx-primary">
+                          <div className="flex items-center justify-between pr-2 text-tx-muted hover:text-white">
                             <div className="flex items-center space-x-1.5">
-                              <Key className="w-2.5 h-2.5 text-amber-400" />
+                              <Key className="w-2.5 h-2.5 text-white/60" strokeWidth={1.5} />
                               <span>id</span>
                             </div>
-                            <span className="text-[10px] text-accent-primary">SERIAL PK</span>
+                            <span className="text-[10px] text-tx-muted uppercase">SERIAL PK</span>
                           </div>
-                          <div className="flex items-center justify-between pr-2 text-tx-muted hover:text-tx-primary">
+                          <div className="flex items-center justify-between pr-2 text-tx-muted hover:text-white">
                             <div className="flex items-center space-x-1.5">
-                              <Columns className="w-2.5 h-2.5 text-tx-muted" />
+                              <Columns className="w-2.5 h-2.5 text-white/60" strokeWidth={1.5} />
                               <span>created_at</span>
                             </div>
-                            <span className="text-[10px] text-tx-muted">TIMESTAMP</span>
+                            <span className="text-[10px] text-tx-muted uppercase">TIMESTAMP</span>
                           </div>
                           <div
                             onClick={() => handleQuickSelect(table.name)}
-                            className="text-[10px] text-accent-primary hover:underline cursor-pointer pt-0.5"
+                            className="text-[10px] text-white/80 hover:text-white cursor-pointer pt-0.5 underline"
                           >
                             + Query columns
                           </div>

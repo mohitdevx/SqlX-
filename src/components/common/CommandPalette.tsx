@@ -91,20 +91,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     <div className="fixed inset-0 z-50 bg-black/75 flex items-start justify-center pt-24 p-4">
       <div className="bg-bg-surface border border-border-default rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-sans text-tx-primary">
         <div className="p-3.5 border-b border-border-subtle flex items-center space-x-2.5 bg-bg-surface">
-          <Search className="w-4 h-4 text-tx-muted flex-shrink-0" />
+          <Search className="w-4 h-4 text-tx-muted flex-shrink-0" strokeWidth={1.5} />
           <input
             autoFocus
             type="text"
-            placeholder="Type a command or search action..."
+            placeholder="Type a command or action..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent text-xs text-tx-primary focus:outline-none placeholder:text-tx-muted font-mono"
+            className="w-full bg-transparent text-xs text-white focus:outline-none placeholder:text-tx-muted font-mono"
           />
           <button
             onClick={onClose}
-            className="text-tx-muted hover:text-tx-primary p-1 rounded hover:bg-bg-overlay transition-colors"
+            className="text-tx-muted hover:text-white p-1 rounded hover:bg-bg-overlay transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -126,10 +126,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   className="group flex items-center justify-between p-2.5 rounded-lg hover:bg-bg-overlay cursor-pointer text-xs transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-7 h-7 rounded-md bg-bg-base border border-border-subtle flex items-center justify-center text-accent-primary group-hover:border-accent-primary/50 transition-colors">
-                      <Icon className="w-3.5 h-3.5" />
+                    <div className="w-7 h-7 rounded-md bg-bg-base border border-border-subtle flex items-center justify-center text-white/80 group-hover:text-white transition-colors">
+                      <Icon className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </div>
-                    <span className="font-medium text-tx-primary tracking-tight">{item.label}</span>
+                    <span className="font-medium text-white tracking-tight">{item.label}</span>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -138,7 +138,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {item.shortcut}
                       </kbd>
                     )}
-                    <ArrowRight className="w-3.5 h-3.5 text-tx-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight
+                      className="w-3.5 h-3.5 text-tx-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                      strokeWidth={1.5}
+                    />
                   </div>
                 </div>
               );

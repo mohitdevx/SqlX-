@@ -28,6 +28,16 @@ export interface ThemeColors {
     error: string;
     info: string;
   };
+  syntax?: {
+    keyword: string;
+    string: string;
+    number: string;
+    comment: string;
+    function: string;
+    operator: string;
+    type: string;
+    variable: string;
+  };
   editor: {
     background: string;
     cursor: string;

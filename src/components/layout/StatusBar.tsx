@@ -12,27 +12,19 @@ export const StatusBar: React.FC = () => {
   const currentConn = connections.find((c) => c.id === activeConnectionId);
 
   return (
-    <footer className="h-6 bg-bg-surface border-t border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono text-tx-secondary select-none">
+    <footer className="h-6 bg-bg-surface border-t border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono text-tx-muted select-none">
       <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-1.5">
+        <div className="flex items-center space-x-2">
           {currentConn ? (
             <>
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  currentConn.environment === 'production'
-                    ? 'bg-status-error'
-                    : currentConn.environment === 'staging'
-                      ? 'bg-status-warning'
-                      : 'bg-status-success'
-                }`}
-              />
-              <span className="text-tx-primary font-medium">{currentConn.name}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
+              <span className="text-white font-medium">{currentConn.name}</span>
               <span className="text-tx-muted uppercase">({currentConn.driver})</span>
             </>
           ) : (
             <>
-              <span className="w-2 h-2 rounded-full bg-status-warning" />
-              <span>Ready (No Active Connection)</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-tx-muted inline-block" />
+              <span>Ready</span>
             </>
           )}
         </div>
@@ -42,7 +34,7 @@ export const StatusBar: React.FC = () => {
         {activeTab?.result && (
           <>
             <div className="flex items-center space-x-1">
-              <Clock className="w-3 h-3 text-tx-muted" />
+              <Clock className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
               <span>{activeTab.result.executionTimeMs}ms</span>
             </div>
             <div>{activeTab.result.rows.length} rows</div>

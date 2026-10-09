@@ -33,6 +33,28 @@ export function applyTheme(theme: SqlXTheme) {
   root.style.setProperty('--color-status-error', colors.status.error);
   root.style.setProperty('--color-status-info', colors.status.info);
 
+  // Syntax Highlighting Tokens
+  if (colors.syntax) {
+    root.style.setProperty('--syntax-keyword', colors.syntax.keyword);
+    root.style.setProperty('--syntax-string', colors.syntax.string);
+    root.style.setProperty('--syntax-number', colors.syntax.number);
+    root.style.setProperty('--syntax-comment', colors.syntax.comment);
+    root.style.setProperty('--syntax-function', colors.syntax.function);
+    root.style.setProperty('--syntax-operator', colors.syntax.operator);
+    root.style.setProperty('--syntax-type', colors.syntax.type);
+    root.style.setProperty('--syntax-variable', colors.syntax.variable);
+  } else {
+    // Default fallback syntax colors
+    root.style.setProperty('--syntax-keyword', '#60a5fa');
+    root.style.setProperty('--syntax-string', '#34d399');
+    root.style.setProperty('--syntax-number', '#f59e0b');
+    root.style.setProperty('--syntax-comment', '#6b7280');
+    root.style.setProperty('--syntax-function', '#a78bfa');
+    root.style.setProperty('--syntax-operator', '#9ca3af');
+    root.style.setProperty('--syntax-type', '#38bdf8');
+    root.style.setProperty('--syntax-variable', '#f3f4f6');
+  }
+
   // Editor
   root.style.setProperty('--color-editor-bg', colors.editor.background);
   root.style.setProperty('--color-editor-cursor', colors.editor.cursor);

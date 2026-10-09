@@ -102,19 +102,19 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
         {/* Header */}
         <div className="h-14 px-5 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary">
-              <Server className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-bg-elevated border border-border-default flex items-center justify-center text-white">
+              <Server className="w-4 h-4 text-white/80" strokeWidth={1.5} />
             </div>
             <div>
-              <h2 className="font-bold text-sm tracking-tight text-tx-primary">Connect Database</h2>
+              <h2 className="font-bold text-sm tracking-tight text-white">Connect Database</h2>
               <p className="text-[11px] text-tx-muted">Add a new database connection profile</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-bg-overlay rounded-md text-tx-muted hover:text-tx-primary transition-colors"
+            className="p-1.5 hover:bg-bg-overlay rounded-md text-tx-muted hover:text-white transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" strokeWidth={1.5} />
           </button>
         </div>
 
@@ -133,11 +133,11 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                   onClick={() => handleDriverChange(d)}
                   className={`py-2 px-3 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
                     driver === d
-                      ? 'bg-bg-elevated text-tx-primary shadow-sm border border-border-default'
-                      : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
+                      ? 'bg-bg-elevated text-white shadow-sm border border-border-default'
+                      : 'text-tx-secondary hover:text-white hover:bg-bg-overlay'
                   }`}
                 >
-                  <Database className="w-3.5 h-3.5 text-accent-primary" />
+                  <Database className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
                   <span className="uppercase">{d}</span>
                 </button>
               ))}
@@ -154,7 +154,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
               />
             </div>
             <div>
@@ -166,11 +166,11 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                 onChange={(e) =>
                   setEnvironment(e.target.value as 'development' | 'staging' | 'production')
                 }
-                className="w-full bg-bg-base border border-border-subtle rounded-md px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-sans transition-colors"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-sans transition-colors"
               >
-                <option value="development">🟢 Development</option>
-                <option value="staging">🟡 Staging</option>
-                <option value="production">🔴 Production (Protected)</option>
+                <option value="development">Development</option>
+                <option value="staging">Staging</option>
+                <option value="production">Production</option>
               </select>
             </div>
           </div>
@@ -185,7 +185,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                 value={filePath}
                 onChange={(e) => setFilePath(e.target.value)}
                 placeholder="dev.sqlite or /path/to/database.db"
-                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
               />
             </div>
           ) : (
@@ -198,7 +198,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                     type="text"
                     value={host}
                     onChange={(e) => setHost(e.target.value)}
-                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
                   />
                 </div>
                 <div>
@@ -207,7 +207,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                     type="number"
                     value={port}
                     onChange={(e) => setPort(Number(e.target.value))}
-                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
                   />
                 </div>
               </div>
@@ -221,7 +221,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                   type="text"
                   value={database}
                   onChange={(e) => setDatabase(e.target.value)}
-                  className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                  className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
                   />
                 </div>
                 <div>
@@ -245,7 +245,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono transition-colors"
                   />
                 </div>
               </div>
@@ -257,13 +257,13 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
                   id="ssl-check"
                   checked={ssl}
                   onChange={(e) => setSsl(e.target.checked)}
-                  className="rounded border-border-subtle text-accent-primary focus:ring-0 cursor-pointer"
+                  className="rounded border-border-subtle text-white focus:ring-0 cursor-pointer"
                 />
                 <label
                   htmlFor="ssl-check"
-                  className="text-xs text-tx-secondary flex items-center space-x-1 cursor-pointer"
+                  className="text-xs text-tx-secondary flex items-center space-x-1.5 cursor-pointer"
                 >
-                  <Shield className="w-3.5 h-3.5 text-tx-muted" />
+                  <Shield className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
                   <span>Enforce SSL / TLS Encryption</span>
                 </label>
               </div>
@@ -280,9 +280,12 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
               }`}
             >
               {testStatus.success ? (
-                <Check className="w-4 h-4 flex-shrink-0" />
+                <Check className="w-4 h-4 flex-shrink-0 text-status-success" strokeWidth={1.5} />
               ) : (
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <AlertCircle
+                  className="w-4 h-4 flex-shrink-0 text-status-error"
+                  strokeWidth={1.5}
+                />
               )}
               <span className="truncate">{testStatus.message}</span>
             </div>
@@ -295,7 +298,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
             type="button"
             onClick={handleTest}
             disabled={testStatus.loading}
-            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-bg-base border border-border-subtle text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay transition-colors disabled:opacity-40"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-bg-base border border-border-subtle text-tx-secondary hover:text-white hover:bg-bg-overlay transition-colors disabled:opacity-40"
           >
             {testStatus.loading ? 'Testing...' : 'Test Connection'}
           </button>
@@ -304,7 +307,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs font-medium rounded-md text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-md text-tx-muted hover:text-white hover:bg-bg-overlay transition-colors"
             >
               Cancel
             </button>
@@ -312,10 +315,10 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
               type="button"
               onClick={handleSaveAndConnect}
               disabled={isLoading}
-              className="px-4 py-1.5 text-xs font-semibold rounded-md bg-accent-primary text-accent-text hover:bg-accent-hover active:bg-accent-active transition-all flex items-center space-x-1.5 shadow-sm disabled:opacity-40"
+              className="px-4 py-1.5 text-xs font-semibold rounded-md bg-white text-black hover:bg-white/90 active:bg-white/80 transition-all flex items-center space-x-1.5 shadow-sm disabled:opacity-40"
             >
               <span>{isLoading ? 'Connecting...' : 'Save & Connect'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 text-black" strokeWidth={1.5} />
             </button>
           </div>
         </div>

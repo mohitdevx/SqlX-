@@ -18,7 +18,7 @@ export const App: React.FC = () => {
   const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // Resizable Split Pane State (percentage height for editor, default 40%)
+  // Resizable Split Pane State (percentage height for editor, default 38%)
   const [editorHeightPct, setEditorHeightPct] = useState(38);
   const isDraggingRef = useRef(false);
   const splitContainerRef = useRef<HTMLDivElement>(null);
@@ -97,7 +97,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden select-none font-sans">
-      {/* Top Title & Header */}
+      {/* Top TitleBar */}
       <TitleBar
         onOpenNewConnection={() => setIsConnectionModalOpen(true)}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
@@ -122,7 +122,7 @@ export const App: React.FC = () => {
         {/* SQL Query Workspace */}
         {activeView === 'query' && (
           <div className="flex-1 flex flex-col overflow-hidden bg-bg-base">
-            {/* Modern Tab Bar */}
+            {/* Tab Bar */}
             <div className="h-10 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-2 overflow-x-auto">
               <div className="flex items-center space-x-1">
                 {tabs.map((tab) => {
@@ -133,21 +133,21 @@ export const App: React.FC = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`h-8 px-3 flex items-center space-x-2 text-xs font-mono rounded-md cursor-pointer transition-all border ${
                         isActive
-                          ? 'bg-bg-base text-tx-primary border-border-default font-semibold shadow-sm'
-                          : 'text-tx-secondary hover:text-tx-primary border-transparent hover:bg-bg-overlay'
+                          ? 'bg-bg-base text-white border-border-default font-medium shadow-sm'
+                          : 'text-tx-secondary hover:text-white border-transparent hover:bg-bg-overlay'
                       }`}
                     >
-                      <Terminal className="w-3.5 h-3.5 text-accent-primary" />
+                      <Terminal className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
                       <span className="truncate max-w-[120px]">{tab.title}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           closeTab(tab.id);
                         }}
-                        className="hover:text-status-error p-0.5 rounded text-tx-muted hover:bg-bg-overlay transition-colors"
+                        className="hover:text-white p-0.5 rounded text-tx-muted hover:bg-bg-overlay transition-colors"
                         title="Close Tab (Ctrl+W)"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3 h-3" strokeWidth={1.5} />
                       </button>
                     </div>
                   );
@@ -155,18 +155,18 @@ export const App: React.FC = () => {
 
                 <button
                   onClick={() => createTab()}
-                  className="p-1 text-tx-muted hover:text-tx-primary hover:bg-bg-overlay rounded-md transition-colors"
+                  className="p-1 text-tx-muted hover:text-white hover:bg-bg-overlay rounded-md transition-colors"
                   title="New Tab (Ctrl+T)"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 text-white/80" strokeWidth={1.5} />
                 </button>
               </div>
 
-              {/* Tab Bar Right Utilities */}
+              {/* Tab Bar Right Summary */}
               <div className="flex items-center space-x-2 text-xs text-tx-muted">
                 {activeTab?.result && (
-                  <div className="flex items-center space-x-1 font-mono text-[11px] px-2 py-0.5 rounded bg-bg-base border border-border-subtle">
-                    <Clock className="w-3 h-3 text-tx-muted" />
+                  <div className="flex items-center space-x-1 font-mono text-[11px] px-2 py-0.5 rounded bg-bg-base border border-border-subtle text-tx-secondary">
+                    <Clock className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
                     <span>{activeTab.result.executionTimeMs}ms</span>
                   </div>
                 )}
@@ -183,7 +183,9 @@ export const App: React.FC = () => {
                 {/* Editor Action Toolbar */}
                 <div className="h-8 bg-bg-surface/60 border-b border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono select-none">
                   <div className="flex items-center space-x-3">
-                    <span className="text-tx-muted uppercase font-semibold">SQL Workspace</span>
+                    <span className="text-tx-muted uppercase font-semibold text-[10px]">
+                      SQL Query Buffer
+                    </span>
                   </div>
 
                   <div className="flex items-center space-x-2">
@@ -193,10 +195,10 @@ export const App: React.FC = () => {
                           updateSql(activeTab.id, '');
                         }
                       }}
-                      className="p-1 hover:text-tx-primary text-tx-muted rounded transition-colors"
+                      className="p-1 hover:text-white text-tx-muted rounded transition-colors"
                       title="Clear Editor"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
@@ -218,12 +220,12 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Resizable Divider Bar */}
+              {/* Resizable Divider Handle */}
               <div
                 onMouseDown={handleMouseDown}
-                className="h-1.5 bg-border-subtle hover:bg-accent-primary cursor-row-resize flex items-center justify-center transition-colors resize-handle z-10"
+                className="h-1.5 bg-border-subtle hover:bg-border-strong cursor-row-resize flex items-center justify-center transition-colors resize-handle z-10"
               >
-                <div className="w-8 h-0.5 bg-border-strong rounded-full" />
+                <div className="w-8 h-0.5 bg-white/20 rounded-full" />
               </div>
 
               {/* Results Panel */}

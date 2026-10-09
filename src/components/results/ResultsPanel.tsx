@@ -87,10 +87,10 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
     return (
       <div className="w-full h-full p-6 bg-status-error/5 border-t border-status-error/20 text-status-error font-mono text-xs overflow-auto space-y-2">
         <div className="flex items-center space-x-2 font-bold text-sm">
-          <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0" strokeWidth={1.5} />
           <span>Execution Failed</span>
         </div>
-        <div className="p-3 bg-bg-surface border border-status-error/30 rounded-md whitespace-pre-wrap text-tx-primary font-mono text-xs leading-relaxed">
+        <div className="p-3 bg-bg-surface border border-status-error/30 rounded-md whitespace-pre-wrap text-white font-mono text-xs leading-relaxed">
           {error}
         </div>
       </div>
@@ -100,8 +100,10 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
   if (!result) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-tx-muted text-xs font-mono select-none space-y-1 bg-bg-base">
-        <p className="font-semibold text-tx-secondary text-sm">Ready to Query</p>
-        <p className="text-tx-muted">Execute any query above to populate the data grid.</p>
+        <p className="font-medium text-white/90 text-xs">Ready to Query</p>
+        <p className="text-tx-muted text-[11px]">
+          Execute any query above to populate the data grid.
+        </p>
       </div>
     );
   }
@@ -115,11 +117,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
             onClick={() => setActiveTab('grid')}
             className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'grid'
-                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
-                : 'text-tx-secondary hover:text-tx-primary'
+                ? 'bg-bg-elevated text-white font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-white'
             }`}
           >
-            <Table className="w-3.5 h-3.5 text-accent-primary" />
+            <Table className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             <span>Grid ({result.rows.length})</span>
           </button>
 
@@ -127,11 +129,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
             onClick={() => setActiveTab('json')}
             className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'json'
-                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
-                : 'text-tx-secondary hover:text-tx-primary'
+                ? 'bg-bg-elevated text-white font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-white'
             }`}
           >
-            <Code2 className="w-3.5 h-3.5 text-amber-400" />
+            <Code2 className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             <span>JSON</span>
           </button>
 
@@ -139,11 +141,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
             onClick={() => setActiveTab('chart')}
             className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'chart'
-                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
-                : 'text-tx-secondary hover:text-tx-primary'
+                ? 'bg-bg-elevated text-white font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-white'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
+            <BarChart3 className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             <span>Chart</span>
           </button>
 
@@ -151,11 +153,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
             onClick={() => setActiveTab('structure')}
             className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'structure'
-                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
-                : 'text-tx-secondary hover:text-tx-primary'
+                ? 'bg-bg-elevated text-white font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-white'
             }`}
           >
-            <Columns className="w-3.5 h-3.5 text-purple-400" />
+            <Columns className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             <span>Schema</span>
           </button>
         </div>
@@ -163,13 +165,16 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         {/* Search & Export Actions */}
         <div className="flex items-center space-x-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted" />
+            <Search
+              className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted"
+              strokeWidth={1.5}
+            />
             <input
               type="text"
               placeholder="Search rows..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              className="w-40 bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono placeholder:text-tx-muted transition-colors"
+              className="w-40 bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-white focus:outline-none focus:border-border-strong font-mono placeholder:text-tx-muted transition-colors"
             />
           </div>
 
@@ -177,23 +182,23 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
           <button
             onClick={handleCopyJson}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono"
+            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
             title="Copy as JSON"
           >
             {copied ? (
-              <Check className="w-3.5 h-3.5 text-status-success" />
+              <Check className="w-3.5 h-3.5 text-white" strokeWidth={1.5} />
             ) : (
-              <Copy className="w-3.5 h-3.5" />
+              <Copy className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             )}
             <span>{copied ? 'Copied' : 'JSON'}</span>
           </button>
 
           <button
             onClick={handleExportCsv}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono"
+            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
             title="Export CSV"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
             <span>CSV</span>
           </button>
         </div>
@@ -204,7 +209,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         {activeTab === 'grid' && <DataGrid data={filteredResult} />}
 
         {activeTab === 'json' && (
-          <div className="w-full h-full p-4 bg-editor-bg overflow-auto font-mono text-xs text-tx-primary select-text">
+          <div className="w-full h-full p-4 bg-editor-bg overflow-auto font-mono text-xs text-white select-text">
             <pre className="leading-relaxed">
               {JSON.stringify(
                 result.rows.map((row) => {
@@ -229,7 +234,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
                 <select
                   value={chartXCol}
                   onChange={(e) => setChartXCol(Number(e.target.value))}
-                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-white font-mono focus:outline-none"
                 >
                   {result.columns.map((c, i) => (
                     <option key={c.name} value={i}>
@@ -244,7 +249,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
                 <select
                   value={chartYCol}
                   onChange={(e) => setChartYCol(Number(e.target.value))}
-                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-white font-mono focus:outline-none"
                 >
                   {result.columns.map((c, i) => (
                     <option key={c.name} value={i}>
@@ -280,7 +285,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
                     </span>
                     <div
                       style={{ height: `${heightPct}%` }}
-                      className="w-full bg-accent-primary rounded-t-sm group-hover:bg-accent-hover transition-all"
+                      className="w-full bg-white/70 rounded-t-sm group-hover:bg-white transition-all"
                     />
                     <span className="text-[10px] font-mono text-tx-secondary truncate w-full text-center mt-1.5">
                       {label}
@@ -313,10 +318,10 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
                       <td className="p-3 border-r border-border-subtle text-tx-muted text-[11px]">
                         {idx + 1}
                       </td>
-                      <td className="p-3 border-r border-border-subtle font-bold text-tx-primary">
+                      <td className="p-3 border-r border-border-subtle font-bold text-white">
                         {col.name}
                       </td>
-                      <td className="p-3 border-r border-border-subtle text-accent-primary uppercase font-mono">
+                      <td className="p-3 border-r border-border-subtle text-white/90 uppercase font-mono">
                         {col.dataType}
                       </td>
                       <td className="p-3 text-tx-secondary">{col.nullable ? 'YES' : 'NO'}</td>
