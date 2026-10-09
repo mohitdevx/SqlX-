@@ -1,7 +1,7 @@
 import { testConnection } from '@/services/tauriBridge';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ConnectionConfig, DatabaseDriver } from '@/types/database';
-import { AlertCircle, Check, Database, Server, Shield, X } from 'lucide-react';
+import { AlertCircle, ArrowRight, Check, Database, Server, Shield, X } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
@@ -14,7 +14,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
   const { addConnection, connect, isLoading } = useConnectionStore();
 
   const [driver, setDriver] = useState<DatabaseDriver>('postgres');
-  const [name, setName] = useState('Local Postgres');
+  const [name, setName] = useState('Local PostgreSQL');
   const [host, setHost] = useState('localhost');
   const [port, setPort] = useState<number>(5432);
   const [database, setDatabase] = useState('postgres');
@@ -40,14 +40,14 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
     setDriver(newDriver);
     if (newDriver === 'postgres') {
       setPort(5432);
-      setName('PostgreSQL Connection');
+      setName('PostgreSQL Database');
       if (!database) setDatabase('postgres');
     } else if (newDriver === 'mysql') {
       setPort(3306);
-      setName('MySQL Connection');
+      setName('MySQL Database');
       if (!database) setDatabase('mysql');
     } else if (newDriver === 'sqlite') {
-      setName('SQLite Database');
+      setName('Local SQLite File');
       setFilePath('dev.sqlite');
     }
   };
@@ -71,9 +71,17 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
     try {
       const ok = await testConnection(currentConfig);
       if (ok) {
-        setTestStatus({ loading: false, success: true, message: 'Connection successful!' });
+        setTestStatus({
+          loading: false,
+          success: true,
+          message: 'Connection verified successfully!',
+        });
       } else {
-        setTestStatus({ loading: false, success: false, message: 'Connection failed.' });
+        setTestStatus({
+          loading: false,
+          success: false,
+          message: 'Failed to establish connection.',
+        });
       }
     } catch (err) {
       setTestStatus({ loading: false, success: false, message: String(err) });
@@ -89,90 +97,95 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-bg-surface border border-border-default rounded-lg w-full max-w-lg shadow-2xl flex flex-col overflow-hidden text-tx-primary font-sans">
+    <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
+      <div className="bg-bg-surface border border-border-default rounded-xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden text-tx-primary font-sans">
         {/* Header */}
-        <div className="h-12 px-4 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
-          <div className="flex items-center space-x-2">
-            <Server className="w-4 h-4 text-accent-primary" />
-            <span className="font-semibold text-sm">New Database Connection</span>
+        <div className="h-14 px-5 border-b border-border-subtle flex items-center justify-between bg-bg-surface">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary">
+              <Server className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="font-bold text-sm tracking-tight text-tx-primary">Connect Database</h2>
+              <p className="text-[11px] text-tx-muted">Add a new database connection profile</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-bg-overlay rounded text-tx-muted hover:text-tx-primary transition-colors"
+            className="p-1.5 hover:bg-bg-overlay rounded-md text-tx-muted hover:text-tx-primary transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-          {/* Driver Selector */}
+        {/* Body */}
+        <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {/* Driver Segmented Buttons */}
           <div>
-            <label className="block text-xs font-semibold text-tx-secondary mb-1.5">
-              DATABASE ENGINE
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+            <span className="block text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-2">
+              Database Engine
+            </span>
+            <div className="grid grid-cols-3 gap-2 bg-bg-base p-1 rounded-lg border border-border-subtle">
               {(['postgres', 'mysql', 'sqlite'] as DatabaseDriver[]).map((d) => (
                 <button
                   key={d}
                   type="button"
                   onClick={() => handleDriverChange(d)}
-                  className={`py-2 px-3 text-xs font-medium rounded border transition-colors flex items-center justify-center space-x-1.5 ${
+                  className={`py-2 px-3 text-xs font-semibold rounded-md transition-all flex items-center justify-center space-x-1.5 ${
                     driver === d
-                      ? 'bg-accent-primary text-accent-text border-accent-primary'
-                      : 'bg-bg-base text-tx-secondary border-border-subtle hover:bg-bg-overlay hover:text-tx-primary'
+                      ? 'bg-bg-elevated text-tx-primary shadow-sm border border-border-default'
+                      : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
                   }`}
                 >
-                  <Database className="w-3.5 h-3.5" />
+                  <Database className="w-3.5 h-3.5 text-accent-primary" />
                   <span className="uppercase">{d}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Connection Name & Environment */}
+          {/* Name & Environment */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-tx-secondary mb-1">
-                Display Name
-              </label>
+              <span className="block text-[11px] font-medium text-tx-secondary mb-1">
+                Profile Name
+              </span>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-tx-secondary mb-1">
-                Environment
-              </label>
+              <span className="block text-[11px] font-medium text-tx-secondary mb-1">
+                Environment Tag
+              </span>
               <select
                 value={environment}
                 onChange={(e) =>
                   setEnvironment(e.target.value as 'development' | 'staging' | 'production')
                 }
-                className="w-full bg-bg-base border border-border-subtle rounded px-2 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-sans transition-colors"
               >
-                <option value="development">Development (Green)</option>
-                <option value="staging">Staging (Orange)</option>
-                <option value="production">Production (Red ⚠️)</option>
+                <option value="development">🟢 Development</option>
+                <option value="staging">🟡 Staging</option>
+                <option value="production">🔴 Production (Protected)</option>
               </select>
             </div>
           </div>
 
           {driver === 'sqlite' ? (
             <div>
-              <label className="block text-xs font-semibold text-tx-secondary mb-1">
+              <span className="block text-[11px] font-medium text-tx-secondary mb-1">
                 SQLite File Path
-              </label>
+              </span>
               <input
                 type="text"
                 value={filePath}
                 onChange={(e) => setFilePath(e.target.value)}
-                placeholder="/path/to/database.db"
-                className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                placeholder="dev.sqlite or /path/to/database.db"
+                className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
               />
             </div>
           ) : (
@@ -180,90 +193,87 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
               {/* Host & Port */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-tx-secondary mb-1">
-                    Host / Server Address
-                  </label>
+                  <span className="block text-[11px] font-medium text-tx-secondary mb-1">Host</span>
                   <input
                     type="text"
                     value={host}
                     onChange={(e) => setHost(e.target.value)}
-                    className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-tx-secondary mb-1">Port</label>
+                  <span className="block text-[11px] font-medium text-tx-secondary mb-1">Port</span>
                   <input
                     type="number"
                     value={port}
                     onChange={(e) => setPort(Number(e.target.value))}
-                    className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
                   />
                 </div>
               </div>
 
-              {/* Database Name */}
+              {/* Database */}
               <div>
-                <label className="block text-xs font-semibold text-tx-secondary mb-1">
-                  Database
-                </label>
+                <span className="block text-[11px] font-medium text-tx-secondary mb-1">
+                  Database Name
+                </span>
                 <input
                   type="text"
                   value={database}
                   onChange={(e) => setDatabase(e.target.value)}
-                  className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                  className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
                 />
               </div>
 
               {/* Username & Password */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-tx-secondary mb-1">
-                    Username
-                  </label>
+                  <span className="block text-[11px] font-medium text-tx-secondary mb-1">User</span>
                   <input
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-tx-secondary mb-1">
+                  <span className="block text-[11px] font-medium text-tx-secondary mb-1">
                     Password
-                  </label>
+                  </span>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-bg-base border border-border-subtle rounded px-2.5 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono"
+                    placeholder="••••••••"
+                    className="w-full bg-bg-base border border-border-subtle rounded-md px-3 py-1.5 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono transition-colors"
                   />
                 </div>
               </div>
 
-              {/* SSL Checkbox */}
+              {/* SSL */}
               <div className="flex items-center space-x-2 pt-1">
                 <input
                   type="checkbox"
-                  id="ssl-toggle"
+                  id="ssl-check"
                   checked={ssl}
                   onChange={(e) => setSsl(e.target.checked)}
-                  className="rounded border-border-subtle text-accent-primary focus:ring-0"
+                  className="rounded border-border-subtle text-accent-primary focus:ring-0 cursor-pointer"
                 />
                 <label
-                  htmlFor="ssl-toggle"
+                  htmlFor="ssl-check"
                   className="text-xs text-tx-secondary flex items-center space-x-1 cursor-pointer"
                 >
                   <Shield className="w-3.5 h-3.5 text-tx-muted" />
-                  <span>Require SSL/TLS encrypted connection</span>
+                  <span>Enforce SSL / TLS Encryption</span>
                 </label>
               </div>
             </>
           )}
 
-          {/* Test Status Alert */}
+          {/* Test Status Banner */}
           {testStatus.message && (
             <div
-              className={`p-2.5 rounded text-xs flex items-center space-x-2 font-mono ${
+              className={`p-3 rounded-md text-xs flex items-center space-x-2 font-mono ${
                 testStatus.success
                   ? 'bg-status-success/10 text-status-success border border-status-success/30'
                   : 'bg-status-error/10 text-status-error border border-status-error/30'
@@ -280,12 +290,12 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="h-12 px-4 border-t border-border-subtle bg-bg-surface flex items-center justify-between">
+        <div className="h-14 px-5 border-t border-border-subtle bg-bg-surface flex items-center justify-between">
           <button
             type="button"
             onClick={handleTest}
             disabled={testStatus.loading}
-            className="px-3 py-1.5 text-xs font-medium rounded bg-bg-elevated border border-border-default text-tx-primary hover:bg-bg-overlay active:bg-bg-base disabled:opacity-40 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-md bg-bg-base border border-border-subtle text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay transition-colors disabled:opacity-40"
           >
             {testStatus.loading ? 'Testing...' : 'Test Connection'}
           </button>
@@ -294,7 +304,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs font-medium rounded text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay transition-colors"
+              className="px-3 py-1.5 text-xs font-medium rounded-md text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-colors"
             >
               Cancel
             </button>
@@ -302,9 +312,10 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
               type="button"
               onClick={handleSaveAndConnect}
               disabled={isLoading}
-              className="px-4 py-1.5 text-xs font-medium rounded bg-accent-primary text-accent-text hover:bg-accent-hover active:bg-accent-active disabled:opacity-40 transition-colors"
+              className="px-4 py-1.5 text-xs font-semibold rounded-md bg-accent-primary text-accent-text hover:bg-accent-hover active:bg-accent-active transition-all flex items-center space-x-1.5 shadow-sm disabled:opacity-40"
             >
-              {isLoading ? 'Connecting...' : 'Connect & Save'}
+              <span>{isLoading ? 'Connecting...' : 'Save & Connect'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

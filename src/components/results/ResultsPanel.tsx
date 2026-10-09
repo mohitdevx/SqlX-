@@ -1,12 +1,13 @@
 import { DataGrid } from '@/components/grid/DataGrid';
 import type { QueryResult } from '@/types/database';
 import {
+  AlertCircle,
   BarChart3,
   Check,
   Code2,
+  Columns,
   Copy,
   Download,
-  FileSpreadsheet,
   Search,
   Table,
 } from 'lucide-react';
@@ -76,7 +77,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `query_result_${Date.now()}.csv`);
+    link.setAttribute('download', `sqlx_export_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -84,93 +85,99 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
   if (error) {
     return (
-      <div className="w-full h-full p-4 bg-status-error/10 border-t border-status-error/30 text-status-error font-mono text-xs overflow-auto">
-        <div className="font-bold mb-1 flex items-center space-x-1.5">
-          <span>SQL Execution Error</span>
+      <div className="w-full h-full p-6 bg-status-error/5 border-t border-status-error/20 text-status-error font-mono text-xs overflow-auto space-y-2">
+        <div className="flex items-center space-x-2 font-bold text-sm">
+          <AlertCircle className="w-4 h-4 text-status-error flex-shrink-0" />
+          <span>Execution Failed</span>
         </div>
-        <p className="whitespace-pre-wrap">{error}</p>
+        <div className="p-3 bg-bg-surface border border-status-error/30 rounded-md whitespace-pre-wrap text-tx-primary font-mono text-xs leading-relaxed">
+          {error}
+        </div>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-tx-muted text-xs font-mono select-none">
-        <p>No active result set. Press F5 or Ctrl+Enter to execute a query.</p>
+      <div className="w-full h-full flex flex-col items-center justify-center text-tx-muted text-xs font-mono select-none space-y-1 bg-bg-base">
+        <p className="font-semibold text-tx-secondary text-sm">Ready to Query</p>
+        <p className="text-tx-muted">Execute any query above to populate the data grid.</p>
       </div>
     );
   }
 
   return (
     <div className="w-full h-full flex flex-col bg-bg-base overflow-hidden">
-      {/* Action and Sub-view bar */}
-      <div className="h-9 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none">
-        <div className="flex items-center space-x-1">
+      {/* Sub-view switcher bar */}
+      <div className="h-10 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none">
+        <div className="flex items-center space-x-1 bg-bg-base p-0.5 rounded-md border border-border-subtle">
           <button
             onClick={() => setActiveTab('grid')}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'grid'
-                ? 'bg-bg-elevated text-tx-primary font-semibold'
-                : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
+                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-tx-primary'
             }`}
           >
-            <Table className="w-3.5 h-3.5" />
-            <span>Grid View</span>
+            <Table className="w-3.5 h-3.5 text-accent-primary" />
+            <span>Grid ({result.rows.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('json')}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'json'
-                ? 'bg-bg-elevated text-tx-primary font-semibold'
-                : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
+                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-tx-primary'
             }`}
           >
-            <Code2 className="w-3.5 h-3.5" />
-            <span>JSON Inspector</span>
+            <Code2 className="w-3.5 h-3.5 text-amber-400" />
+            <span>JSON</span>
           </button>
 
           <button
             onClick={() => setActiveTab('chart')}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'chart'
-                ? 'bg-bg-elevated text-tx-primary font-semibold'
-                : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
+                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-tx-primary'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>Chart Visualizer</span>
+            <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Chart</span>
           </button>
 
           <button
             onClick={() => setActiveTab('structure')}
-            className={`flex items-center space-x-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
               activeTab === 'structure'
-                ? 'bg-bg-elevated text-tx-primary font-semibold'
-                : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay'
+                ? 'bg-bg-elevated text-tx-primary font-semibold shadow-sm'
+                : 'text-tx-secondary hover:text-tx-primary'
             }`}
           >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
-            <span>Columns ({result.columns.length})</span>
+            <Columns className="w-3.5 h-3.5 text-purple-400" />
+            <span>Schema</span>
           </button>
         </div>
 
         {/* Search & Export Actions */}
         <div className="flex items-center space-x-2">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2 top-2 text-tx-muted" />
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted" />
             <input
               type="text"
-              placeholder="Filter rows..."
+              placeholder="Search rows..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              className="w-36 bg-bg-base border border-border-subtle rounded pl-7 pr-2 py-1 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono placeholder:text-tx-muted"
+              className="w-40 bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-tx-primary focus:outline-none focus:border-accent-primary font-mono placeholder:text-tx-muted transition-colors"
             />
           </div>
 
+          <div className="h-4 w-[1px] bg-border-subtle" />
+
           <button
             onClick={handleCopyJson}
-            className="flex items-center space-x-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle hover:bg-bg-overlay text-tx-secondary hover:text-tx-primary transition-colors text-xs"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono"
             title="Copy as JSON"
           >
             {copied ? (
@@ -178,13 +185,13 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
-            <span>{copied ? 'Copied!' : 'JSON'}</span>
+            <span>{copied ? 'Copied' : 'JSON'}</span>
           </button>
 
           <button
             onClick={handleExportCsv}
-            className="flex items-center space-x-1 px-2 py-1 rounded bg-bg-elevated border border-border-subtle hover:bg-bg-overlay text-tx-secondary hover:text-tx-primary transition-colors text-xs"
-            title="Export to CSV"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono"
+            title="Export CSV"
           >
             <Download className="w-3.5 h-3.5" />
             <span>CSV</span>
@@ -197,8 +204,8 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         {activeTab === 'grid' && <DataGrid data={filteredResult} />}
 
         {activeTab === 'json' && (
-          <div className="w-full h-full p-3 bg-editor-bg overflow-auto font-mono text-xs text-tx-primary select-text">
-            <pre>
+          <div className="w-full h-full p-4 bg-editor-bg overflow-auto font-mono text-xs text-tx-primary select-text">
+            <pre className="leading-relaxed">
               {JSON.stringify(
                 result.rows.map((row) => {
                   const obj: Record<string, unknown> = {};
@@ -215,14 +222,14 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         )}
 
         {activeTab === 'chart' && (
-          <div className="w-full h-full p-4 flex flex-col space-y-4 overflow-auto bg-bg-base">
-            <div className="flex items-center space-x-4 text-xs">
+          <div className="w-full h-full p-6 flex flex-col space-y-4 overflow-auto bg-bg-base font-sans">
+            <div className="flex items-center space-x-6 text-xs bg-bg-surface p-3 rounded-lg border border-border-subtle">
               <div className="flex items-center space-x-2">
-                <span className="text-tx-secondary font-medium">X Axis (Category):</span>
+                <span className="text-tx-secondary font-medium">Category (X):</span>
                 <select
                   value={chartXCol}
                   onChange={(e) => setChartXCol(Number(e.target.value))}
-                  className="bg-bg-surface border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
                 >
                   {result.columns.map((c, i) => (
                     <option key={c.name} value={i}>
@@ -233,11 +240,11 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
               </div>
 
               <div className="flex items-center space-x-2">
-                <span className="text-tx-secondary font-medium">Y Axis (Value):</span>
+                <span className="text-tx-secondary font-medium">Metric (Y):</span>
                 <select
                   value={chartYCol}
                   onChange={(e) => setChartYCol(Number(e.target.value))}
-                  className="bg-bg-surface border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+                  className="bg-bg-base border border-border-subtle rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
                 >
                   {result.columns.map((c, i) => (
                     <option key={c.name} value={i}>
@@ -248,10 +255,10 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
               </div>
             </div>
 
-            {/* Solid Minimal Bar Chart Visualization */}
-            <div className="flex-1 min-h-[220px] bg-bg-surface border border-border-subtle rounded p-4 flex items-end space-x-2 overflow-x-auto">
-              {result.rows.slice(0, 50).map((row, idx) => {
-                const label = String(row[chartXCol] ?? `Row ${idx + 1}`);
+            {/* Minimalist Solid Bar Chart */}
+            <div className="flex-1 min-h-[260px] bg-bg-surface border border-border-subtle rounded-lg p-6 flex items-end space-x-3 overflow-x-auto">
+              {result.rows.slice(0, 40).map((row, idx) => {
+                const label = String(row[chartXCol] ?? `Item ${idx + 1}`);
                 const rawVal = Number(row[chartYCol]);
                 const val = Number.isNaN(rawVal) ? 0 : rawVal;
                 const maxVal = Math.max(
@@ -265,17 +272,17 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
                 return (
                   <div
-                    key={idx}
-                    className="flex-1 min-w-[32px] flex flex-col items-center justify-end h-full group"
+                    key={label + idx}
+                    className="flex-1 min-w-[36px] flex flex-col items-center justify-end h-full group"
                   >
-                    <span className="text-[10px] font-mono text-tx-muted opacity-0 group-hover:opacity-100 transition-opacity mb-1">
+                    <span className="text-[10px] font-mono text-tx-muted opacity-0 group-hover:opacity-100 transition-opacity mb-1 font-semibold">
                       {val}
                     </span>
                     <div
                       style={{ height: `${heightPct}%` }}
-                      className="w-full bg-accent-primary rounded-t group-hover:bg-accent-hover transition-all"
+                      className="w-full bg-accent-primary rounded-t-sm group-hover:bg-accent-hover transition-all"
                     />
-                    <span className="text-[10px] font-mono text-tx-secondary truncate w-full text-center mt-1">
+                    <span className="text-[10px] font-mono text-tx-secondary truncate w-full text-center mt-1.5">
                       {label}
                     </span>
                   </div>
@@ -286,31 +293,38 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         )}
 
         {activeTab === 'structure' && (
-          <div className="w-full h-full p-4 overflow-auto bg-bg-base font-mono text-xs">
-            <table className="w-full border-collapse border border-border-subtle text-left">
-              <thead>
-                <tr className="bg-bg-surface text-tx-secondary border-b border-border-subtle">
-                  <th className="p-2 border-r border-border-subtle">Index</th>
-                  <th className="p-2 border-r border-border-subtle">Column Name</th>
-                  <th className="p-2 border-r border-border-subtle">Data Type</th>
-                  <th className="p-2">Nullable</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.columns.map((col, idx) => (
-                  <tr key={idx} className="border-b border-border-subtle hover:bg-bg-surface">
-                    <td className="p-2 border-r border-border-subtle text-tx-muted">{idx + 1}</td>
-                    <td className="p-2 border-r border-border-subtle font-bold text-tx-primary">
-                      {col.name}
-                    </td>
-                    <td className="p-2 border-r border-border-subtle text-accent-primary uppercase">
-                      {col.dataType}
-                    </td>
-                    <td className="p-2 text-tx-secondary">{col.nullable ? 'YES' : 'NO'}</td>
+          <div className="w-full h-full p-6 overflow-auto bg-bg-base font-mono text-xs">
+            <div className="bg-bg-surface border border-border-subtle rounded-lg overflow-hidden">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="bg-bg-overlay text-tx-secondary border-b border-border-subtle text-[11px] uppercase tracking-wider">
+                    <th className="p-3 border-r border-border-subtle">Index</th>
+                    <th className="p-3 border-r border-border-subtle">Column Name</th>
+                    <th className="p-3 border-r border-border-subtle">Data Type</th>
+                    <th className="p-3">Nullable</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {result.columns.map((col, idx) => (
+                    <tr
+                      key={col.name}
+                      className="border-b border-border-subtle hover:bg-bg-overlay/50 transition-colors"
+                    >
+                      <td className="p-3 border-r border-border-subtle text-tx-muted text-[11px]">
+                        {idx + 1}
+                      </td>
+                      <td className="p-3 border-r border-border-subtle font-bold text-tx-primary">
+                        {col.name}
+                      </td>
+                      <td className="p-3 border-r border-border-subtle text-accent-primary uppercase font-mono">
+                        {col.dataType}
+                      </td>
+                      <td className="p-3 text-tx-secondary">{col.nullable ? 'YES' : 'NO'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

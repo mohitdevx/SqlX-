@@ -1,6 +1,6 @@
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
-import { Database, Palette, Play, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { ArrowRight, Database, Palette, Play, Plus, RefreshCw, Search, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
@@ -40,7 +40,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const actions = [
     {
       id: 'run-query',
-      label: 'Execute Query (F5)',
+      label: 'Execute Active Query',
+      shortcut: 'F5',
       icon: Play,
       action: () => {
         if (activeConnectionId) runActiveQuery(activeConnectionId);
@@ -48,7 +49,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     },
     {
       id: 'new-tab',
-      label: 'New SQL Query Tab (Ctrl+T)',
+      label: 'New SQL Query Tab',
+      shortcut: 'Ctrl+T',
       icon: Plus,
       action: () => {
         createTab();
@@ -57,6 +59,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'new-conn',
       label: 'New Database Connection',
+      shortcut: 'Ctrl+N',
       icon: Database,
       action: () => {
         onOpenNewConnection();
@@ -65,6 +68,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'refresh-schema',
       label: 'Refresh Database Schema Tree',
+      shortcut: 'Ctrl+R',
       icon: RefreshCw,
       action: () => {
         refreshSchema();
@@ -73,6 +77,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     {
       id: 'switch-theme',
       label: 'Open Theme & Palette Manager',
+      shortcut: '',
       icon: Palette,
       action: () => {
         onOpenThemeManager();
@@ -83,26 +88,29 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const filtered = actions.filter((a) => a.label.toLowerCase().includes(query.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-start justify-center pt-24 p-4">
-      <div className="bg-bg-surface border border-border-default rounded-lg w-full max-w-lg shadow-2xl overflow-hidden font-sans text-tx-primary">
-        <div className="p-3 border-b border-border-subtle flex items-center space-x-2">
-          <Search className="w-4 h-4 text-tx-muted" />
+    <div className="fixed inset-0 z-50 bg-black/75 flex items-start justify-center pt-24 p-4">
+      <div className="bg-bg-surface border border-border-default rounded-xl w-full max-w-lg shadow-2xl overflow-hidden font-sans text-tx-primary">
+        <div className="p-3.5 border-b border-border-subtle flex items-center space-x-2.5 bg-bg-surface">
+          <Search className="w-4 h-4 text-tx-muted flex-shrink-0" />
           <input
             autoFocus
             type="text"
-            placeholder="Type a command or action..."
+            placeholder="Type a command or search action..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent text-xs text-tx-primary focus:outline-none placeholder:text-tx-muted font-mono"
           />
-          <button onClick={onClose} className="text-tx-muted hover:text-tx-primary p-1">
+          <button
+            onClick={onClose}
+            className="text-tx-muted hover:text-tx-primary p-1 rounded hover:bg-bg-overlay transition-colors"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-2 max-h-64 overflow-y-auto space-y-1">
+        <div className="p-2 max-h-72 overflow-y-auto space-y-1">
           {filtered.length === 0 ? (
-            <div className="p-4 text-center text-xs text-tx-muted font-mono">
+            <div className="p-6 text-center text-xs text-tx-muted font-mono">
               No matching commands found.
             </div>
           ) : (
@@ -115,10 +123,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     item.action();
                     onClose();
                   }}
-                  className="flex items-center space-x-2.5 p-2 rounded hover:bg-bg-overlay cursor-pointer text-xs font-mono text-tx-secondary hover:text-tx-primary transition-colors"
+                  className="group flex items-center justify-between p-2.5 rounded-lg hover:bg-bg-overlay cursor-pointer text-xs transition-colors"
                 >
-                  <Icon className="w-4 h-4 text-accent-primary flex-shrink-0" />
-                  <span>{item.label}</span>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-7 h-7 rounded-md bg-bg-base border border-border-subtle flex items-center justify-center text-accent-primary group-hover:border-accent-primary/50 transition-colors">
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="font-medium text-tx-primary tracking-tight">{item.label}</span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    {item.shortcut && (
+                      <kbd className="text-[10px] font-mono bg-bg-base px-2 py-0.5 rounded border border-border-subtle text-tx-muted">
+                        {item.shortcut}
+                      </kbd>
+                    )}
+                    <ArrowRight className="w-3.5 h-3.5 text-tx-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                 </div>
               );
             })
