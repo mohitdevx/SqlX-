@@ -22,16 +22,24 @@ import { useEffect, useRef } from 'react';
 interface SqlEditorProps {
   value: string;
   onChange: (val: string) => void;
+  onSelectionChange?: (selection: string) => void;
   onExecute?: () => void;
 }
 
-export const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute }) => {
+export const SqlEditor: React.FC<SqlEditorProps> = ({
+  value,
+  onChange,
+  onSelectionChange,
+  onExecute,
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onChangeRef = useRef(onChange);
+  const onSelectionChangeRef = useRef(onSelectionChange);
   const onExecuteRef = useRef(onExecute);
 
   onChangeRef.current = onChange;
+  onSelectionChangeRef.current = onSelectionChange;
   onExecuteRef.current = onExecute;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial document setup only
@@ -136,6 +144,17 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
+          }
+          if (update.selectionSet) {
+            const sel = update.state.selection.main;
+            if (!sel.empty) {
+              const text = update.state.sliceDoc(sel.from, sel.to);
+              if (onSelectionChangeRef.current) {
+                onSelectionChangeRef.current(text);
+              }
+            } else if (onSelectionChangeRef.current) {
+              onSelectionChangeRef.current('');
+            }
           }
         }),
       ],

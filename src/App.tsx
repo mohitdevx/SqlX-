@@ -9,7 +9,7 @@ import { SchemaTree } from '@/components/schema-tree/SchemaTree';
 import { ThemeManager } from '@/components/theme/ThemeManager';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
-import { Clock, Plus, Terminal, Trash2, X } from 'lucide-react';
+import { Clock, Play, Plus, Terminal, Trash2, X } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -23,8 +23,17 @@ export const App: React.FC = () => {
   const isDraggingRef = useRef(false);
   const splitContainerRef = useRef<HTMLDivElement>(null);
 
-  const { tabs, activeTabId, setActiveTab, createTab, closeTab, updateSql, runActiveQuery } =
-    useQueryStore();
+  const {
+    tabs,
+    activeTabId,
+    selectedSql,
+    setSelectedSql,
+    setActiveTab,
+    createTab,
+    closeTab,
+    updateSql,
+    runActiveQuery,
+  } = useQueryStore();
   const { activeConnectionId } = useConnectionStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -94,6 +103,8 @@ export const App: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeConnectionId, activeTabId, runActiveQuery, createTab, closeTab]);
+
+  const hasSelection = Boolean(selectedSql && selectedSql.trim().length > 0);
 
   return (
     <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden select-none font-sans">
@@ -181,22 +192,40 @@ export const App: React.FC = () => {
                 className="flex flex-col overflow-hidden bg-editor-bg"
               >
                 {/* Editor Action Toolbar */}
-                <div className="h-8 bg-bg-surface/60 border-b border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono select-none">
+                <div className="h-8 bg-bg-surface/70 border-b border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono select-none">
                   <div className="flex items-center space-x-3">
                     <span className="text-tx-muted uppercase font-semibold text-[10px]">
-                      SQL Query Buffer
+                      Query Buffer
                     </span>
+                    {hasSelection && (
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-white font-sans border border-white/15">
+                        Selected statement active
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-2">
+                    {hasSelection && (
+                      <button
+                        onClick={() => {
+                          if (activeConnectionId) runActiveQuery(activeConnectionId);
+                        }}
+                        className="flex items-center space-x-1 px-2 py-0.5 rounded bg-white text-black hover:bg-white/90 text-[10px] font-semibold transition-colors"
+                      >
+                        <Play className="w-2.5 h-2.5 fill-black" strokeWidth={1.5} />
+                        <span>Run Selection</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => {
                         if (activeTab) {
                           updateSql(activeTab.id, '');
+                          setSelectedSql('');
                         }
                       }}
                       className="p-1 hover:text-white text-tx-muted rounded transition-colors"
-                      title="Clear Editor"
+                      title="Clear Buffer"
                     >
                       <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                     </button>
@@ -210,6 +239,7 @@ export const App: React.FC = () => {
                       key={activeTab.id}
                       value={activeTab.sql}
                       onChange={(sql) => updateSql(activeTab.id, sql)}
+                      onSelectionChange={(sel) => setSelectedSql(sel)}
                       onExecute={() => {
                         if (activeConnectionId) {
                           runActiveQuery(activeConnectionId);
@@ -230,7 +260,11 @@ export const App: React.FC = () => {
 
               {/* Results Panel */}
               <div className="flex-1 overflow-hidden">
-                <ResultsPanel result={activeTab?.result || null} error={activeTab?.error || null} />
+                <ResultsPanel
+                  result={activeTab?.result || null}
+                  error={activeTab?.error || null}
+                  isRunning={activeTab?.isRunning}
+                />
               </div>
             </div>
           </div>

@@ -7,22 +7,43 @@ import {
   Code2,
   Columns,
   Copy,
+  Database,
   Download,
+  Loader2,
   Search,
   Table,
+  Terminal,
 } from 'lucide-react';
 import type React from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface ResultsPanelProps {
   result: QueryResult | null;
   error: string | null;
+  isRunning?: boolean;
 }
 
-export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => {
+export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRunning }) => {
   const [activeTab, setActiveTab] = useState<'grid' | 'json' | 'chart' | 'structure'>('grid');
   const [filterText, setFilterText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  // Live timer during query execution
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (isRunning) {
+      setElapsedSeconds(0);
+      interval = setInterval(() => {
+        setElapsedSeconds((prev) => +(prev + 0.1).toFixed(1));
+      }, 100);
+    } else {
+      setElapsedSeconds(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning]);
 
   // Selected chart columns
   const [chartXCol, setChartXCol] = useState<number>(0);
@@ -83,6 +104,38 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
     document.body.removeChild(link);
   };
 
+  // 1. Running State with Sleek Animated SQL Query feedback
+  if (isRunning) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center bg-bg-base select-none p-6 space-y-4">
+        <div className="relative flex items-center justify-center">
+          {/* Subtle pulsating outer ring */}
+          <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 animate-ping absolute" />
+          <div className="w-12 h-12 rounded-xl bg-bg-surface border border-border-default flex items-center justify-center text-white shadow-lg relative z-10">
+            <Database className="w-5 h-5 text-white/90 animate-pulse" strokeWidth={1.5} />
+          </div>
+        </div>
+
+        <div className="text-center space-y-1.5">
+          <div className="flex items-center justify-center space-x-2 text-white text-xs font-semibold tracking-tight">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-white/80" strokeWidth={2} />
+            <span>Executing SQL Query...</span>
+          </div>
+          <p className="text-[11px] font-mono text-tx-muted">
+            Transmitting stream buffers &bull; Elapsed:{' '}
+            <span className="text-white font-medium">{elapsedSeconds.toFixed(1)}s</span>
+          </p>
+        </div>
+
+        {/* Shimmering loading bar */}
+        <div className="w-48 h-1 bg-bg-surface border border-border-subtle rounded-full overflow-hidden">
+          <div className="w-full h-full bg-white/40 animate-pulse rounded-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Error State
   if (error) {
     return (
       <div className="w-full h-full p-6 bg-status-error/5 border-t border-status-error/20 text-status-error font-mono text-xs overflow-auto space-y-2">
@@ -97,25 +150,28 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
     );
   }
 
+  // 3. Empty State
   if (!result) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-tx-muted text-xs font-mono select-none space-y-1 bg-bg-base">
-        <p className="font-medium text-white/90 text-xs">Ready to Query</p>
-        <p className="text-tx-muted text-[11px]">
-          Execute any query above to populate the data grid.
-        </p>
+      <div className="w-full h-full flex flex-col items-center justify-center text-tx-muted text-xs font-mono select-none space-y-1.5 bg-bg-base">
+        <div className="w-8 h-8 rounded-lg bg-bg-surface border border-border-subtle flex items-center justify-center text-tx-muted">
+          <Terminal className="w-4 h-4 text-white/60" strokeWidth={1.5} />
+        </div>
+        <p className="font-medium text-white/80 text-xs">Ready to Query</p>
+        <p className="text-tx-muted text-[11px]">Select text or press F5 to execute statements.</p>
       </div>
     );
   }
 
+  // 4. Data Results
   return (
     <div className="w-full h-full flex flex-col bg-bg-base overflow-hidden">
       {/* Sub-view switcher bar */}
-      <div className="h-10 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none">
+      <div className="h-9 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none">
         <div className="flex items-center space-x-1 bg-bg-base p-0.5 rounded-md border border-border-subtle">
           <button
             onClick={() => setActiveTab('grid')}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-xs font-medium transition-all ${
               activeTab === 'grid'
                 ? 'bg-bg-elevated text-white font-semibold shadow-sm'
                 : 'text-tx-secondary hover:text-white'
@@ -127,7 +183,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
           <button
             onClick={() => setActiveTab('json')}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-xs font-medium transition-all ${
               activeTab === 'json'
                 ? 'bg-bg-elevated text-white font-semibold shadow-sm'
                 : 'text-tx-secondary hover:text-white'
@@ -139,7 +195,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
           <button
             onClick={() => setActiveTab('chart')}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-xs font-medium transition-all ${
               activeTab === 'chart'
                 ? 'bg-bg-elevated text-white font-semibold shadow-sm'
                 : 'text-tx-secondary hover:text-white'
@@ -151,7 +207,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
 
           <button
             onClick={() => setActiveTab('structure')}
-            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded text-xs font-medium transition-all ${
               activeTab === 'structure'
                 ? 'bg-bg-elevated text-white font-semibold shadow-sm'
                 : 'text-tx-secondary hover:text-white'
@@ -165,40 +221,37 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error }) => 
         {/* Search & Export Actions */}
         <div className="flex items-center space-x-2">
           <div className="relative">
-            <Search
-              className="w-3.5 h-3.5 absolute left-2.5 top-2 text-tx-muted"
-              strokeWidth={1.5}
-            />
+            <Search className="w-3 h-3 absolute left-2 top-2 text-tx-muted" strokeWidth={1.5} />
             <input
               type="text"
               placeholder="Search rows..."
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
-              className="w-40 bg-bg-base border border-border-subtle rounded-md pl-8 pr-2 py-1 text-xs text-white focus:outline-none focus:border-border-strong font-mono placeholder:text-tx-muted transition-colors"
+              className="w-36 bg-bg-base border border-border-subtle rounded pl-7 pr-2 py-0.5 text-xs text-white focus:outline-none focus:border-border-strong font-mono placeholder:text-tx-muted transition-colors"
             />
           </div>
 
-          <div className="h-4 w-[1px] bg-border-subtle" />
+          <div className="h-3.5 w-[1px] bg-border-subtle" />
 
           <button
             onClick={handleCopyJson}
-            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
+            className="flex items-center space-x-1 px-2 py-0.5 rounded bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
             title="Copy as JSON"
           >
             {copied ? (
-              <Check className="w-3.5 h-3.5 text-white" strokeWidth={1.5} />
+              <Check className="w-3 h-3 text-white" strokeWidth={1.5} />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
+              <Copy className="w-3 h-3 text-white/80" strokeWidth={1.5} />
             )}
             <span>{copied ? 'Copied' : 'JSON'}</span>
           </button>
 
           <button
             onClick={handleExportCsv}
-            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
+            className="flex items-center space-x-1 px-2 py-0.5 rounded bg-bg-surface hover:bg-bg-overlay border border-border-subtle text-tx-secondary hover:text-white transition-all text-xs font-mono"
             title="Export CSV"
           >
-            <Download className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
+            <Download className="w-3 h-3 text-white/80" strokeWidth={1.5} />
             <span>CSV</span>
           </button>
         </div>

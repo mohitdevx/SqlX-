@@ -14,11 +14,13 @@ export interface QueryTab {
 interface QueryStoreState {
   tabs: QueryTab[];
   activeTabId: string;
+  selectedSql: string;
+  setSelectedSql: (sql: string) => void;
   createTab: (initialSql?: string) => string;
   closeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   updateSql: (id: string, sql: string) => void;
-  runActiveQuery: (connectionId: string) => Promise<void>;
+  runActiveQuery: (connectionId: string, customSql?: string) => Promise<void>;
 }
 
 export const useQueryStore = create<QueryStoreState>((set, get) => ({
@@ -26,13 +28,18 @@ export const useQueryStore = create<QueryStoreState>((set, get) => ({
     {
       id: 'tab-1',
       title: 'Query 1',
-      sql: 'SELECT 1 AS status, "SqlX Desktop Ready" AS message;',
+      sql: 'SELECT 1 AS id, "SqlX Client Ready" AS message, CURRENT_TIMESTAMP AS timestamp;\n\n-- You can also run multiple queries at once:\nSELECT "User Analytics" AS category, 1420 AS active_sessions;\nSELECT "Server Health" AS status, 99.98 AS uptime_pct;',
       result: null,
       isRunning: false,
       error: null,
     },
   ],
   activeTabId: 'tab-1',
+  selectedSql: '',
+
+  setSelectedSql: (selectedSql) => {
+    set({ selectedSql });
+  },
 
   createTab: (initialSql = '') => {
     const id = `tab-${Date.now()}`;
@@ -72,7 +79,7 @@ export const useQueryStore = create<QueryStoreState>((set, get) => ({
   },
 
   setActiveTab: (id) => {
-    set({ activeTabId: id });
+    set({ activeTabId: id, selectedSql: '' });
   },
 
   updateSql: (id, sql) => {
@@ -81,10 +88,14 @@ export const useQueryStore = create<QueryStoreState>((set, get) => ({
     }));
   },
 
-  runActiveQuery: async (connectionId: string) => {
-    const { tabs, activeTabId } = get();
+  runActiveQuery: async (connectionId: string, customSql?: string) => {
+    const { tabs, activeTabId, selectedSql } = get();
     const activeTab = tabs.find((t) => t.id === activeTabId);
-    if (!activeTab || !activeTab.sql.trim()) return;
+    if (!activeTab) return;
+
+    // Use customSql, or highlighted selection, or entire tab buffer
+    const sqlToRun = (customSql || selectedSql.trim() || activeTab.sql).trim();
+    if (!sqlToRun) return;
 
     set((state) => ({
       tabs: state.tabs.map((t) =>
@@ -93,7 +104,7 @@ export const useQueryStore = create<QueryStoreState>((set, get) => ({
     }));
 
     try {
-      const result = await executeQuery(connectionId, activeTab.sql);
+      const result = await executeQuery(connectionId, sqlToRun);
       set((state) => ({
         tabs: state.tabs.map((t) =>
           t.id === activeTabId ? { ...t, result, isRunning: false, error: null } : t
