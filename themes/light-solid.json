@@ -1,0 +1,54 @@
+{
+  "$schema": "./theme.schema.json",
+  "name": "Light Solid",
+  "type": "light",
+  "colors": {
+    "background": {
+      "base": "#f8f9fa",
+      "surface": "#ffffff",
+      "overlay": "#f1f3f5",
+      "elevated": "#e9ecef"
+    },
+    "border": {
+      "subtle": "#e2e8f0",
+      "default": "#cbd5e1",
+      "strong": "#94a3b8"
+    },
+    "text": {
+      "primary": "#0f172a",
+      "secondary": "#475569",
+      "muted": "#94a3b8",
+      "inverse": "#ffffff"
+    },
+    "accent": {
+      "primary": "#2563eb",
+      "primaryHover": "#1d4ed8",
+      "primaryActive": "#1e40af",
+      "text": "#ffffff"
+    },
+    "status": {
+      "success": "#059669",
+      "warning": "#d97706",
+      "error": "#dc2626",
+      "info": "#0284c7"
+    },
+    "editor": {
+      "background": "#ffffff",
+      "cursor": "#0f172a",
+      "selection": "#bfdbfe",
+      "lineHighlight": "#f8fafc",
+      "gutterBackground": "#f8fafc",
+      "gutterForeground": "#94a3b8"
+    },
+    "grid": {
+      "headerBackground": "#f1f5f9",
+      "headerText": "#1e293b",
+      "rowEven": "#ffffff",
+      "rowOdd": "#f8fafc",
+      "rowHover": "#e2e8f0",
+      "rowSelected": "#dbeafe",
+      "cellBorder": "#e2e8f0",
+      "nullValue": "#94a3b8"
+    }
+  }
+}

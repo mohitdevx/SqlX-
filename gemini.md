@@ -1,135 +1,128 @@
-# SqlX - Project Guidelines & Engineering Standards
+# SqlX - Architectural Standards & Engineering Guidelines
 
-## 1. Core Mission & Philosophy
-**SqlX** is a next-generation, high-performance, low-memory SQL client for Linux and Windows. It is engineered to replace sluggish, bloated database clients with a lightning-fast, ergonomic, and aesthetically refined workbench.
+## 1. Core Mission & Design Tenets
+**SqlX** is a high-performance, low-memory, modern SQL client engineered specifically for Linux and Windows.
 
-### Guiding Principles
-- **Speed & Efficiency**: Instant startup time (< 500ms), low idle memory footprint (< 60MB), and asynchronous query execution that never locks the UI thread.
-- **Visual Clarity & Solid Aesthetics**: Clean, distraction-free interface built on solid color tokens, precise typography, and intentional whitespace. No tacky AI-generated glowing effects, muddy neon gradients, or sluggish transition bloat.
-- **Ergonomics First**: Keyboard-first navigation, tabbed query management, intelligent SQL autocomplete, and instant table/query data visualization.
-- **Deeply Themeable**: Fully decoupled UI styling driven by human-readable JSON theme configuration files.
+### Invariant Rules
+1. **Zero Aesthetic Bloat**: No cheap AI-generated neon gradients, muddy glowing box-shadows, or slow transition lag. All UI tokens must use **solid, high-contrast, calibrated colors** with 1px subtle borders (`border-1`).
+2. **Extreme Performance Budget**:
+   - Idle RAM: **< 50 MB**.
+   - Cold Startup: **< 350 ms**.
+   - Large Dataset: 100k+ rows rendered smoothly at **60/120 FPS** via virtualized row pooling (`@tanstack/react-virtual`).
+   - Query Execution: Thread-isolated async Tokio tasks that never block or freeze the UI thread.
+3. **Pluggable Dynamic JSON Themes**: All styling maps to CSS Custom Properties (`var(--color-...)`). Changing or loading an external `theme.json` must update the interface instantly without restarting or re-rendering the component tree.
 
 ---
 
-## 2. Design System & UI/UX Standards
+## 2. Immutable Project Folder Structure
 
-### 2.1 Visual Rules
-- **Solid Colors**: All surfaces, borders, cards, and buttons must use solid, well-calibrated color tokens. Avoid arbitrary drop-shadows, blurred backdrop filters, and rainbow gradients.
-- **Borders & Separation**: Use subtle 1px solid borders (`border-1`) for visual separation between panels, sidebars, tabs, and data grid cells.
-- **Typography**:
-  - **UI Font**: Clean geometric sans-serif (e.g., *Inter*, *Geist*, *SF Pro*, or *Roboto*).
-  - **Code/SQL/Data Font**: Crisp monospace with ligature options (e.g., *JetBrains Mono*, *Fira Code*, or *Cascadia Code*).
-- **Density Controls**: Provide Compact, Standard, and Relaxed density modes for data grids and sidebar trees.
+The project structure is locked and must not be arbitrarily rearranged:
 
-### 2.2 Theme Configuration Engine (`theme.json`)
-The application must load themes dynamically from a user-configurable JSON file located in the user's config directory (`~/.config/sqlx/themes/` on Linux, `%APPDATA%\SqlX\themes\` on Windows).
-
-#### Theme Schema Specification
-```json
-{
-  "$schema": "./theme.schema.json",
-  "name": "SqlX Dark Solid",
-  "type": "dark",
-  "colors": {
-    "background": {
-      "base": "#121214",
-      "surface": "#1a1a1e",
-      "overlay": "#222228",
-      "elevated": "#2a2a32"
-    },
-    "border": {
-      "subtle": "#2e2e38",
-      "default": "#3d3d4a",
-      "strong": "#525264"
-    },
-    "text": {
-      "primary": "#f4f4f6",
-      "secondary": "#a1a1aa",
-      "muted": "#71717a",
-      "inverse": "#09090b"
-    },
-    "accent": {
-      "primary": "#3b82f6",
-      "primaryHover": "#2563eb",
-      "primaryActive": "#1d4ed8",
-      "text": "#ffffff"
-    },
-    "status": {
-      "success": "#10b981",
-      "warning": "#f59e0b",
-      "error": "#ef4444",
-      "info": "#06b6d4"
-    },
-    "editor": {
-      "background": "#16161a",
-      "cursor": "#f4f4f6",
-      "selection": "#264f78",
-      "lineHighlight": "#1e1e24",
-      "gutterBackground": "#16161a",
-      "gutterForeground": "#52525b"
-    },
-    "grid": {
-      "headerBackground": "#1e1e24",
-      "headerText": "#e4e4e7",
-      "rowEven": "#16161a",
-      "rowOdd": "#1a1a1e",
-      "rowHover": "#24242c",
-      "rowSelected": "#1e3a5f",
-      "cellBorder": "#27272a",
-      "nullValue": "#71717a"
-    }
-  }
-}
+```
+SqlX/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                    # Automated cross-platform lint, test & typecheck
+│       └── release.yml               # Production build & release matrix (Linux .deb/.AppImage, Windows .msi/.exe)
+├── .cargo/
+│   └── config.toml                  # Compiler & linker optimizations
+├── docker-compose.dev.yml           # Local multi-database testing environment (Postgres, MySQL, Redis, ClickHouse)
+├── src-tauri/                       # Native Rust Core Engine
+│   ├── Cargo.toml                   # Rust dependencies & profile optimizations
+│   ├── build.rs                     # Tauri build script
+│   ├── tauri.conf.json              # Tauri v2 desktop app configuration & window settings
+│   ├── capabilities/
+│   │   └── default.json             # Tauri v2 security capabilities & permissions
+│   └── src/
+│       ├── main.rs                  # Desktop executable entrypoint
+│       ├── lib.rs                   # Tauri plugin & command registrar
+│       ├── state.rs                 # Shared async thread-safe application state
+│       ├── error.rs                 # Centralized typed error definitions (thiserror)
+│       ├── drivers/                 # Modular Database Driver Engine
+│       │   ├── mod.rs               # Database trait definitions & factory
+│       │   ├── postgres.rs          # PostgreSQL driver implementation
+│       │   ├── mysql.rs             # MySQL/MariaDB driver implementation
+│       │   └── sqlite.rs            # SQLite local file driver implementation
+│       ├── commands/                # Tauri IPC Command Handlers
+│       │   ├── mod.rs
+│       │   ├── connection.rs        # Connect, test, disconnect, ping
+│       │   ├── query.rs             # Execute query, stream chunks, cancel query
+│       │   ├── schema.rs            # Fetch databases, tables, columns, constraints, DDL
+│       │   └── theme.rs             # Load user themes, list custom themes from disk
+│       ├── models/                  # Shared Rust data models & DTOs
+│       │   ├── mod.rs
+│       │   ├── connection.rs        # Connection configuration structs
+│       │   ├── query.rs             # Query execution request / response payloads
+│       │   └── schema.rs            # Schema object tree representations
+│       └── utils/
+│           ├── mod.rs
+│           └── fs_theme.rs          # Filesystem theme loader & watcher
+├── src/                             # Solid / React / TypeScript UI
+│   ├── assets/                      # Static assets & icons
+│   ├── components/                  # Solid-color UI primitives
+│   │   ├── common/                  # Buttons, Modals, Inputs, Tooltips, Badges, Tabs
+│   │   ├── layout/                  # TitleBar, ActivityBar, StatusBar
+│   │   ├── editor/                  # CodeMirror 6 SQL Editor & autocomplete
+│   │   ├── grid/                    # Virtualized DataGrid (TanStack Virtual)
+│   │   └── schema-tree/             # Database/Table explorer navigation
+│   ├── stores/                      # Reactive state (Zustand: connectionStore, queryStore, themeStore)
+│   ├── services/                    # Tauri IPC bridge & theme engine
+│   ├── types/                       # TypeScript interfaces matching Rust DTOs
+│   ├── styles/                      # Tailwind styles & CSS custom variable mappings
+│   ├── App.tsx                      # Main application layout
+│   └── main.tsx                     # UI entrypoint
+├── themes/                          # Default & User JSON Themes
+│   ├── theme.schema.json            # JSON Schema specification for theme validation
+│   ├── dark-solid.json              # Default dark solid theme
+│   ├── light-solid.json             # Default light solid theme
+│   └── midnight-slate.json          # Midnight slate theme
+├── .editorconfig
+├── .gitignore
+├── .oxlintrc.json                   # Oxlint fast linter configuration
+├── biome.json                       # Biome formatter & linter configuration
+├── tsconfig.json                    # Strict TypeScript configuration
+├── tsconfig.node.json
+├── vite.config.ts                   # Fast Vite bundler configuration
+├── tailwind.config.ts               # Tailwind CSS configured for dynamic CSS variable tokens
+├── postcss.config.js
+├── package.json
+└── gemini.md                        # Master Project Rules & Architectural Contracts
 ```
 
 ---
 
-## 3. Performance & Memory Budget
-
-| Metric | Target | Hard Limit |
-| :--- | :--- | :--- |
-| **Cold Start Time** | < 400ms | < 800ms |
-| **Idle RAM Usage** | 30 MB - 50 MB | < 80 MB |
-| **Large Result Set (100k+ rows)** | Instant render via virtualization | Zero UI freeze / streaming chunk fetch |
-| **Frame Rate** | 60 - 120 FPS constant | No frame drops on scroll |
-| **Query Cancellation** | Instant (< 50ms) | Backend terminates socket query immediately |
-
-### Architectural Performance Rules
-1. **Virtualized Data Grid**: Never render DOM nodes for off-screen rows or columns. Use chunk-based virtual scrolling with row pooling.
-2. **Stream-Based Data Transfer**: Large query results must stream from the database driver in binary/IPC chunks rather than buffering the entire multi-gigabyte dataset into memory at once.
-3. **Thread Isolation**: Database I/O, query execution, connection pinging, and formatting must execute on native worker threads or async Tokio tasks, completely isolated from UI rendering.
-4. **Zero Heavy Web View Bloat**: Avoid heavy DOM wrappers, redundant React reconciliations, or unnecessary runtime overhead. Keep component trees lean and reactive.
+## 3. Rust Backend Standards
+- **Thread Safety**: All mutable state must be guarded using `parking_lot::RwLock` or `tokio::sync::Mutex` inside `AppState`.
+- **Database Driver Isolation**: Every database driver (`Postgres`, `MySQL`, `SQLite`) must implement the `DatabaseAdapter` trait. Adding support for another engine (e.g. ClickHouse, MSSQL) must only require adding a new file to `src-tauri/src/drivers/`.
+- **Error Handling**: Never use raw `unwrap()` or `expect()` in production commands. All errors must map into `AppError` via `thiserror` and serialize cleanly to the frontend.
+- **Connection Pools**: Database pools must use connection limits and timeout boundaries (`5s acquire timeout`) to prevent pool exhaustion or app hangs.
 
 ---
 
-## 4. Key Feature Matrix
-
-1. **Connection Manager**:
-   - Support for PostgreSQL, MySQL/MariaDB, SQLite, Redis/Key-Value, ClickHouse, and SQL Server.
-   - SSL/TLS, SSH tunneling (with native agent and key support).
-   - Safe environment indicators (Production: Solid Red Badge, Staging: Solid Orange, Dev: Solid Green).
-2. **Query Workspace**:
-   - Multi-tab SQL editor with syntax highlighting, auto-formatting, and context-aware schema autocomplete.
-   - Parameterized query execution (`:param` / `$1`).
-   - Query history, execution plan analyzer (`EXPLAIN ANALYZE`), and query timing telemetry.
-3. **Data Grid & Visualizer**:
-   - In-place cell editing with transaction preview (diff view before `COMMIT`).
-   - Multiple visualization views:
-     - **Grid View** (virtualized table with quick filters and column pinning).
-     - **JSON View** (formatted document viewer for JSON/JSONB fields).
-     - **Chart View** (Bar, Line, Area, and Scatter charts for numerical series).
-     - **Inspector View** (Key-value single-row detailed sidebar).
-4. **Schema & Object Explorer**:
-   - Tree navigation for Databases, Schemas, Tables, Views, Triggers, Functions, and Indexes.
-   - Quick DDL generator (`CREATE TABLE`, `ALTER TABLE`, DDL export).
-   - ER Diagram / Table Relationship Visualizer (SVG-based, clean orthogonal layout).
+## 4. Frontend UI/UX Standards
+- **Strict Color Tokens**: Use Tailwind classes that map directly to CSS variables (`bg-bg-base`, `bg-bg-surface`, `text-tx-primary`, `border-border-subtle`, `bg-grid-rowEven`, etc.).
+- **Typography**:
+  - UI Labels: Sans-serif (`Inter`, `Geist`, `Segoe UI`).
+  - SQL Code & Grid Cells: Monospace (`JetBrains Mono`, `Fira Code`, `Cascadia Code`).
+- **CodeMirror 6 SQL Editor**:
+  - Auto-completion for SQL keywords & schema table/column names.
+  - Keyboard shortcuts: `F5` / `Ctrl+Enter` to run query, `Ctrl+/` to toggle comments.
+- **DataGrid Virtualization**: Always use `@tanstack/react-virtual` for data rendering so scrolling through 500k rows produces zero layout recalculation overhead.
 
 ---
 
-## 5. Development & Code Quality Rules
-- **Modularity**: Strict separation between Driver/Protocol layer, IPC Bridge layer, and UI Presentation layer.
-- **Type Safety**: End-to-end type safety between backend data structures and frontend models.
-- **Testing**:
-  - Unit tests for query parsers, connection handlers, and theme parsers.
-  - Integration tests against containerized databases (PostgreSQL, MySQL, SQLite).
-- **Error Handling**: Friendly, actionable error messages with direct links to the faulty SQL line/character position.
+## 5. Theme JSON Specification & Manual Loading
+Users can create custom themes by placing `.json` files into `~/.config/sqlx/themes/` (Linux) or `%APPDATA%\SqlX\themes\` (Windows).
+
+Themes are validated against `themes/theme.schema.json`:
+- `name`: Human-readable string.
+- `type`: `"dark"` | `"light"`.
+- `colors`: Must contain all required token objects (`background`, `border`, `text`, `accent`, `status`, `editor`, `grid`).
+
+---
+
+## 6. Tooling & CI/CD Pipeline
+- **Fast Linting**: Oxlint (`npm run lint`) & Biome (`biome check .`).
+- **Rust Checks**: `cargo fmt --check` and `cargo clippy -- -D warnings`.
+- **Cross-Platform CI**: GitHub Actions test matrix validating both `ubuntu-latest` and `windows-latest`.
+- **Release Matrix**: Automated packaging into `.deb`, `.AppImage`, `.msi`, and `.exe` on tag push (`v*`).

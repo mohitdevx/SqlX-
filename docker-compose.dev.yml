@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Test Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sqlx-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sqlx_user
+      POSTGRES_PASSWORD: sqlx_password
+      POSTGRES_DB: sqlx_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sqlx_user -d sqlx_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MySQL Test Database
+  mysql:
+    image: mysql:8.4
+    container_name: sqlx-dev-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: sqlx_dev
+      MYSQL_USER: sqlx_user
+      MYSQL_PASSWORD: sqlx_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ClickHouse Columnar Database
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: sqlx-dev-clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123" # HTTP
+      - "9000:9000" # Native TCP
+    volumes:
+      - ch_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  # Redis Key-Value Store
+  redis:
+    image: redis:7-alpine
+    container_name: sqlx-dev-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  pg_data:
+  mysql_data:
+  ch_data:
+  redis_data:

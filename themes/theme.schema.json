@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SqlXTheme",
+  "description": "Theme definition for SqlX Desktop SQL Client",
+  "type": "object",
+  "required": ["name", "type", "colors"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the theme"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["dark", "light"],
+      "description": "Theme base type"
+    },
+    "colors": {
+      "type": "object",
+      "required": ["background", "border", "text", "accent", "status", "editor", "grid"],
+      "properties": {
+        "background": {
+          "type": "object",
+          "required": ["base", "surface", "overlay", "elevated"],
+          "properties": {
+            "base": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "surface": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "overlay": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "elevated": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "border": {
+          "type": "object",
+          "required": ["subtle", "default", "strong"],
+          "properties": {
+            "subtle": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "default": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "strong": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "text": {
+          "type": "object",
+          "required": ["primary", "secondary", "muted", "inverse"],
+          "properties": {
+            "primary": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "secondary": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "muted": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "inverse": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "accent": {
+          "type": "object",
+          "required": ["primary", "primaryHover", "primaryActive", "text"],
+          "properties": {
+            "primary": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "primaryHover": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "primaryActive": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "text": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "status": {
+          "type": "object",
+          "required": ["success", "warning", "error", "info"],
+          "properties": {
+            "success": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "warning": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "error": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "info": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "editor": {
+          "type": "object",
+          "required": ["background", "cursor", "selection", "lineHighlight", "gutterBackground", "gutterForeground"],
+          "properties": {
+            "background": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "cursor": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "selection": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "lineHighlight": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "gutterBackground": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "gutterForeground": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "required": ["headerBackground", "headerText", "rowEven", "rowOdd", "rowHover", "rowSelected", "cellBorder", "nullValue"],
+          "properties": {
+            "headerBackground": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "headerText": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "rowEven": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "rowOdd": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "rowHover": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "rowSelected": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "cellBorder": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "nullValue": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        }
+      }
+    }
+  }
+}

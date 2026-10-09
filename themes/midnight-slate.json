@@ -1,0 +1,54 @@
+{
+  "$schema": "./theme.schema.json",
+  "name": "Midnight Slate",
+  "type": "dark",
+  "colors": {
+    "background": {
+      "base": "#0b0f19",
+      "surface": "#111827",
+      "overlay": "#1f2937",
+      "elevated": "#374151"
+    },
+    "border": {
+      "subtle": "#1f2937",
+      "default": "#374151",
+      "strong": "#4b5563"
+    },
+    "text": {
+      "primary": "#f9fafb",
+      "secondary": "#9ca3af",
+      "muted": "#6b7280",
+      "inverse": "#111827"
+    },
+    "accent": {
+      "primary": "#6366f1",
+      "primaryHover": "#4f46e5",
+      "primaryActive": "#4338ca",
+      "text": "#ffffff"
+    },
+    "status": {
+      "success": "#10b981",
+      "warning": "#f59e0b",
+      "error": "#ef4444",
+      "info": "#06b6d4"
+    },
+    "editor": {
+      "background": "#0d131f",
+      "cursor": "#f9fafb",
+      "selection": "#283548",
+      "lineHighlight": "#131b2c",
+      "gutterBackground": "#0d131f",
+      "gutterForeground": "#4b5563"
+    },
+    "grid": {
+      "headerBackground": "#151d2c",
+      "headerText": "#e5e7eb",
+      "rowEven": "#0d131f",
+      "rowOdd": "#111827",
+      "rowHover": "#1e293b",
+      "rowSelected": "#2d3c52",
+      "cellBorder": "#1f2937",
+      "nullValue": "#6b7280"
+    }
+  }
+}
