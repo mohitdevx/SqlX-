@@ -134,51 +134,56 @@ export const App: React.FC = () => {
         {activeView === 'query' && (
           <div className="flex-1 flex flex-col overflow-hidden bg-bg-base">
             {/* Tab Bar */}
-            <div className="h-10 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-2 overflow-x-auto">
-              <div className="flex items-center space-x-1">
+            <div className="h-9 bg-[#0c0d10] border-b border-white/[0.06] flex items-center justify-between px-1.5 overflow-x-auto">
+              <div className="flex items-center gap-0.5 h-full">
                 {tabs.map((tab) => {
                   const isActive = tab.id === activeTabId;
                   return (
                     <div
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`h-8 px-3 flex items-center space-x-2 text-xs font-mono rounded-md cursor-pointer transition-all border ${
-                        isActive
-                          ? 'bg-bg-base text-white border-border-default font-medium shadow-sm'
-                          : 'text-tx-secondary hover:text-white border-transparent hover:bg-bg-overlay'
+                      className={`relative h-full px-3 flex items-center gap-1.5 text-[11px] cursor-pointer transition-all duration-150 ${
+                        isActive ? 'text-white/80' : 'text-white/30 hover:text-white/50'
                       }`}
                     >
-                      <Terminal className="w-3.5 h-3.5 text-white/80" strokeWidth={1.5} />
-                      <span className="truncate max-w-[120px]">{tab.title}</span>
+                      <Terminal className="w-3 h-3 opacity-50" strokeWidth={1.5} />
+                      <span className="truncate max-w-[110px] font-medium">{tab.title}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           closeTab(tab.id);
                         }}
-                        className="hover:text-white p-0.5 rounded text-tx-muted hover:bg-bg-overlay transition-colors"
+                        className="ml-1 opacity-0 group-hover:opacity-100 hover:opacity-100 hover:text-white/60 p-0.5 rounded transition-all"
+                        style={{ opacity: isActive ? 0.4 : undefined }}
                         title="Close Tab (Ctrl+W)"
                       >
-                        <X className="w-3 h-3" strokeWidth={1.5} />
+                        <X className="w-2.5 h-2.5" strokeWidth={2} />
                       </button>
+                      {/* Active indicator line */}
+                      {isActive && (
+                        <div className="absolute bottom-0 left-3 right-3 h-px bg-white/40 rounded-full" />
+                      )}
                     </div>
                   );
                 })}
 
                 <button
                   onClick={() => createTab()}
-                  className="p-1 text-tx-muted hover:text-white hover:bg-bg-overlay rounded-md transition-colors"
+                  className="w-6 h-6 flex items-center justify-center text-white/20 hover:text-white/40 hover:bg-white/[0.04] rounded transition-all duration-150 ml-0.5"
                   title="New Tab (Ctrl+T)"
                 >
-                  <Plus className="w-4 h-4 text-white/80" strokeWidth={1.5} />
+                  <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
                 </button>
               </div>
 
-              {/* Tab Bar Right Summary */}
-              <div className="flex items-center space-x-2 text-xs text-tx-muted">
+              {/* Tab Bar Right: Execution Summary */}
+              <div className="flex items-center gap-2 pr-1 shrink-0">
                 {activeTab?.result && (
-                  <div className="flex items-center space-x-1 font-mono text-[11px] px-2 py-0.5 rounded bg-bg-base border border-border-subtle text-tx-secondary">
-                    <Clock className="w-3 h-3 text-tx-muted" strokeWidth={1.5} />
+                  <div className="flex items-center gap-1 font-mono text-[10px] text-white/25">
+                    <Clock className="w-2.5 h-2.5" strokeWidth={1.5} />
                     <span>{activeTab.result.executionTimeMs}ms</span>
+                    <span className="text-white/15">·</span>
+                    <span>{activeTab.result.rows.length} rows</span>
                   </div>
                 )}
               </div>
@@ -192,27 +197,27 @@ export const App: React.FC = () => {
                 className="flex flex-col overflow-hidden bg-editor-bg"
               >
                 {/* Editor Action Toolbar */}
-                <div className="h-8 bg-bg-surface/70 border-b border-border-subtle flex items-center justify-between px-3 text-[11px] font-mono select-none">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-tx-muted uppercase font-semibold text-[10px]">
-                      Query Buffer
+                <div className="h-7 bg-[#0c0d10]/60 border-b border-white/[0.04] flex items-center justify-between px-3 text-[10px] select-none">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-white/20 uppercase tracking-wider text-[9px]">
+                      query
                     </span>
                     {hasSelection && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-white font-sans border border-white/15">
-                        Selected statement active
+                      <span className="text-[9px] px-1.5 py-px rounded-sm bg-white/[0.05] text-white/40 font-medium">
+                        selection
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-1">
                     {hasSelection && (
                       <button
                         onClick={() => {
                           if (activeConnectionId) runActiveQuery(activeConnectionId);
                         }}
-                        className="flex items-center space-x-1 px-2 py-0.5 rounded bg-white text-black hover:bg-white/90 text-[10px] font-semibold transition-colors"
+                        className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/90 text-[#0c0d10] hover:bg-white text-[9px] font-semibold transition-colors"
                       >
-                        <Play className="w-2.5 h-2.5 fill-black" strokeWidth={1.5} />
+                        <Play className="w-2 h-2 fill-[#0c0d10]" strokeWidth={0} />
                         <span>Run Selection</span>
                       </button>
                     )}
@@ -224,10 +229,10 @@ export const App: React.FC = () => {
                           setSelectedSql('');
                         }
                       }}
-                      className="p-1 hover:text-white text-tx-muted rounded transition-colors"
+                      className="w-5 h-5 flex items-center justify-center hover:text-white/50 text-white/15 rounded transition-colors"
                       title="Clear Buffer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                      <Trash2 className="w-3 h-3" strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
@@ -253,10 +258,8 @@ export const App: React.FC = () => {
               {/* Resizable Divider Handle */}
               <div
                 onMouseDown={handleMouseDown}
-                className="h-1.5 bg-border-subtle hover:bg-border-strong cursor-row-resize flex items-center justify-center transition-colors resize-handle z-10"
-              >
-                <div className="w-8 h-0.5 bg-white/20 rounded-full" />
-              </div>
+                className="h-px bg-white/[0.06] hover:h-[3px] hover:bg-white/[0.12] cursor-row-resize flex items-center justify-center transition-all duration-150 resize-handle z-10"
+              />
 
               {/* Results Panel */}
               <div className="flex-1 overflow-hidden">
