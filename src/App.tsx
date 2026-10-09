@@ -1,67 +1,86 @@
-import React, { useState } from 'react';
-import { TitleBar } from '@/components/layout/TitleBar';
+import { CommandPalette } from '@/components/common/CommandPalette';
+import { ConnectionModal } from '@/components/connection/ConnectionModal';
+import { SqlEditor } from '@/components/editor/SqlEditor';
 import { ActivityBar } from '@/components/layout/ActivityBar';
 import { StatusBar } from '@/components/layout/StatusBar';
+import { TitleBar } from '@/components/layout/TitleBar';
+import { ResultsPanel } from '@/components/results/ResultsPanel';
 import { SchemaTree } from '@/components/schema-tree/SchemaTree';
-import { SqlEditor } from '@/components/editor/SqlEditor';
-import { DataGrid } from '@/components/grid/DataGrid';
+import { ThemeManager } from '@/components/theme/ThemeManager';
+import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
-import { useThemeStore } from '@/stores/themeStore';
-import { Plus, X } from 'lucide-react';
+import { Plus, Terminal, X } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 export const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'explorer' | 'query' | 'visualizer' | 'theme'>('query');
-  const { tabs, activeTabId, setActiveTab, createTab, closeTab, updateSql } = useQueryStore();
-  const { currentTheme, loadCustomThemeJson } = useThemeStore();
+  const [activeView, setActiveView] = useState<'explorer' | 'query' | 'theme'>('query');
+  const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  const { tabs, activeTabId, setActiveTab, createTab, closeTab, updateSql, runActiveQuery } =
+    useQueryStore();
+  const { activeConnectionId } = useConnectionStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
-  return (
-    <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden">
-      <TitleBar />
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F5 or Ctrl+Enter -> Run query
+      if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
+        e.preventDefault();
+        if (activeConnectionId) {
+          runActiveQuery(activeConnectionId);
+        }
+      }
+      // Ctrl+T -> New Query Tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        createTab();
+        setActiveView('query');
+      }
+      // Ctrl+W -> Close active tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+        e.preventDefault();
+        if (activeTabId) {
+          closeTab(activeTabId);
+        }
+      }
+      // Ctrl+K -> Command Palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
 
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeConnectionId, activeTabId, runActiveQuery, createTab, closeTab]);
+
+  return (
+    <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden select-none font-sans">
+      {/* Top Title & Quick Actions Header */}
+      <TitleBar
+        onOpenNewConnection={() => setIsConnectionModalOpen(true)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenThemeManager={() => setActiveView('theme')}
+      />
+
+      {/* Main Workspace Body */}
       <div className="flex-1 flex flex-row overflow-hidden">
         <ActivityBar activeView={activeView} setActiveView={setActiveView} />
 
+        {/* Schema Tree Sidebar */}
         {activeView === 'explorer' && <SchemaTree />}
 
-        {activeView === 'theme' ? (
-          <div className="flex-1 p-6 overflow-auto bg-bg-base">
-            <h2 className="text-base font-bold text-tx-primary mb-2">Theme Manager</h2>
-            <p className="text-xs text-tx-secondary mb-4">
-              Current Active Theme: <span className="font-mono text-accent-primary">{currentTheme.name}</span> ({currentTheme.type})
-            </p>
-            <div className="border border-border-default rounded p-4 bg-bg-surface max-w-xl">
-              <label className="block text-xs font-semibold text-tx-secondary mb-2">
-                Paste Custom Theme JSON:
-              </label>
-              <textarea
-                id="theme-paste-area"
-                rows={10}
-                className="w-full bg-editor-bg border border-border-subtle rounded p-2 text-xs font-mono text-tx-primary focus:outline-none focus:border-accent-primary"
-                placeholder='{"name": "My Custom Theme", "type": "dark", "colors": { ... }}'
-              />
-              <button
-                onClick={() => {
-                  const area = document.getElementById('theme-paste-area') as HTMLTextAreaElement;
-                  if (area && area.value) {
-                    const ok = loadCustomThemeJson(area.value);
-                    if (ok) {
-                      alert('Custom theme applied successfully!');
-                    } else {
-                      alert('Invalid theme JSON schema.');
-                    }
-                  }
-                }}
-                className="mt-3 px-3 py-1.5 bg-accent-primary text-accent-text text-xs font-medium rounded hover:bg-accent-hover transition-colors"
-              >
-                Apply JSON Theme
-              </button>
-            </div>
-          </div>
-        ) : (
+        {/* Theme Manager View */}
+        {activeView === 'theme' && <ThemeManager />}
+
+        {/* SQL Query Workspace View */}
+        {activeView === 'query' && (
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Tab Bar */}
-            <div className="h-9 bg-bg-surface border-b border-border-subtle flex items-center px-2 space-x-1 overflow-x-auto select-none">
+            {/* Tab Strip */}
+            <div className="h-9 bg-bg-surface border-b border-border-subtle flex items-center px-2 space-x-1 overflow-x-auto">
               {tabs.map((tab) => {
                 const isActive = tab.id === activeTabId;
                 return (
@@ -70,59 +89,75 @@ export const App: React.FC = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`h-7 px-3 flex items-center space-x-2 text-xs font-mono rounded cursor-pointer border transition-colors ${
                       isActive
-                        ? 'bg-bg-base text-tx-primary border-border-default'
+                        ? 'bg-bg-base text-tx-primary border-border-default font-medium'
                         : 'text-tx-secondary hover:text-tx-primary border-transparent hover:bg-bg-overlay'
                     }`}
                   >
+                    <Terminal className="w-3 h-3 text-tx-muted" />
                     <span>{tab.title}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         closeTab(tab.id);
                       }}
-                      className="hover:text-status-error p-0.5"
+                      className="hover:text-status-error p-0.5 rounded text-tx-muted transition-colors"
+                      title="Close Tab (Ctrl+W)"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 );
               })}
+
               <button
                 onClick={() => createTab()}
-                className="p-1 text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay rounded"
-                title="New Query Tab"
+                className="p-1 text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay rounded transition-colors"
+                title="New Query Tab (Ctrl+T)"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Split View: Editor (Top 45%) + DataGrid (Bottom 55%) */}
+            {/* Split View: Editor (Top 42%) + Results Panel (Bottom 58%) */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="h-[45%] border-b border-border-subtle overflow-hidden">
+              <div className="h-[42%] border-b border-border-subtle overflow-hidden">
                 {activeTab && (
                   <SqlEditor
                     key={activeTab.id}
                     value={activeTab.sql}
                     onChange={(sql) => updateSql(activeTab.id, sql)}
+                    onExecute={() => {
+                      if (activeConnectionId) {
+                        runActiveQuery(activeConnectionId);
+                      }
+                    }}
                   />
                 )}
               </div>
 
               <div className="flex-1 overflow-hidden">
-                {activeTab?.error ? (
-                  <div className="w-full h-full p-4 bg-status-error/10 border-t border-status-error/20 text-status-error font-mono text-xs overflow-auto">
-                    <strong>Error:</strong> {activeTab.error}
-                  </div>
-                ) : (
-                  <DataGrid data={activeTab?.result || null} />
-                )}
+                <ResultsPanel result={activeTab?.result || null} error={activeTab?.error || null} />
               </div>
             </div>
           </div>
         )}
       </div>
 
+      {/* Bottom Status Bar */}
       <StatusBar />
+
+      {/* Modals & Dialogs */}
+      <ConnectionModal
+        isOpen={isConnectionModalOpen}
+        onClose={() => setIsConnectionModalOpen(false)}
+      />
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onOpenNewConnection={() => setIsConnectionModalOpen(true)}
+        onOpenThemeManager={() => setActiveView('theme')}
+      />
     </div>
   );
 };

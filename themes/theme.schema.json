@@ -69,7 +69,14 @@
         },
         "editor": {
           "type": "object",
-          "required": ["background", "cursor", "selection", "lineHighlight", "gutterBackground", "gutterForeground"],
+          "required": [
+            "background",
+            "cursor",
+            "selection",
+            "lineHighlight",
+            "gutterBackground",
+            "gutterForeground"
+          ],
           "properties": {
             "background": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
             "cursor": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
@@ -81,7 +88,16 @@
         },
         "grid": {
           "type": "object",
-          "required": ["headerBackground", "headerText", "rowEven", "rowOdd", "rowHover", "rowSelected", "cellBorder", "nullValue"],
+          "required": [
+            "headerBackground",
+            "headerText",
+            "rowEven",
+            "rowOdd",
+            "rowHover",
+            "rowSelected",
+            "cellBorder",
+            "nullValue"
+          ],
           "properties": {
             "headerBackground": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
             "headerText": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },

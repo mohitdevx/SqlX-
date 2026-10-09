@@ -1,9 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { EditorState } from '@codemirror/state';
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightActiveLine } from '@codemirror/view';
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completionKeymap,
+} from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { sql, PostgreSQL } from '@codemirror/lang-sql';
-import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
+import { PostgreSQL, sql } from '@codemirror/lang-sql';
+import { EditorState } from '@codemirror/state';
+import {
+  EditorView,
+  highlightActiveLine,
+  highlightActiveLineGutter,
+  keymap,
+  lineNumbers,
+} from '@codemirror/view';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface SqlEditorProps {
   value: string;
@@ -14,7 +26,13 @@ interface SqlEditorProps {
 export const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const onChangeRef = useRef(onChange);
+  const onExecuteRef = useRef(onExecute);
 
+  onChangeRef.current = onChange;
+  onExecuteRef.current = onExecute;
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: initial document setup only
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -23,7 +41,7 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute
         height: '100%',
         backgroundColor: 'var(--color-editor-bg)',
         color: 'var(--color-text-primary)',
-        fontFamily: 'JetBrains Mono, Fira Code, monospace',
+        fontFamily: 'JetBrains Mono, Fira Code, Cascadia Code, monospace',
         fontSize: '13px',
       },
       '.cm-content': {
@@ -69,21 +87,21 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({ value, onChange, onExecute
           {
             key: 'F5',
             run: () => {
-              if (onExecute) onExecute();
+              if (onExecuteRef.current) onExecuteRef.current();
               return true;
             },
           },
           {
             key: 'Ctrl-Enter',
             run: () => {
-              if (onExecute) onExecute();
+              if (onExecuteRef.current) onExecuteRef.current();
               return true;
             },
           },
         ]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
-            onChange(update.state.doc.toString());
+            onChangeRef.current(update.state.doc.toString());
           }
         }),
       ],

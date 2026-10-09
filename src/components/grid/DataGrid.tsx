@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import type { QueryResult } from '@/types/database';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import type React from 'react';
+import { useRef } from 'react';
 
 interface DataGridProps {
   data: QueryResult | null;
@@ -29,7 +30,9 @@ export const DataGrid: React.FC<DataGridProps> = ({ data }) => {
     <div className="w-full h-full flex flex-col bg-bg-base overflow-hidden select-text">
       {/* Grid Header */}
       <div className="flex bg-grid-headerBg border-b border-grid-cellBorder text-grid-headerTx text-xs font-medium font-mono">
-        <div className="w-12 px-2 py-1.5 text-center text-tx-muted border-r border-grid-cellBorder">#</div>
+        <div className="w-12 px-2 py-1.5 text-center text-tx-muted border-r border-grid-cellBorder">
+          #
+        </div>
         {data.columns.map((col, idx) => (
           <div
             key={idx}

@@ -1,5 +1,5 @@
+import type { ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult } from '@/types/database';
 import { invoke } from '@tauri-apps/api/core';
-import type { ConnectionConfig, DatabaseTree, ColumnSchema, QueryResult } from '@/types/database';
 
 export async function testConnection(config: ConnectionConfig): Promise<boolean> {
   return await invoke<boolean>('test_connection', { config });

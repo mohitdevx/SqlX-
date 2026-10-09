@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { ConnectionConfig, DatabaseTree } from '@/types/database';
 import { connectDatabase, disconnectDatabase, getSchemaTree } from '@/services/tauriBridge';
+import type { ConnectionConfig, DatabaseTree } from '@/types/database';
+import { create } from 'zustand';
 
 interface ConnectionState {
   connections: ConnectionConfig[];

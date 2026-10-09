@@ -1,5 +1,5 @@
 use crate::drivers::create_adapter;
-use crate::error::{AppError, AppResult};
+use crate::error::AppResult;
 use crate::models::ConnectionConfig;
 use crate::state::AppState;
 use std::sync::Arc;
@@ -39,9 +39,15 @@ pub async fn disconnect_database(
     connection_id: String,
     state: State<'_, AppState>,
 ) -> AppResult<()> {
-    if let Some(adapter) = state.active_sessions.write().remove(&connection_id) {
+    let maybe_adapter = {
+        let mut guard = state.active_sessions.write();
+        guard.remove(&connection_id)
+    };
+
+    if let Some(adapter) = maybe_adapter {
         adapter.close().await?;
     }
+
     state.connections.write().remove(&connection_id);
     Ok(())
 }

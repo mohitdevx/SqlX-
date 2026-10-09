@@ -8,10 +8,5 @@
     "typescript/no-explicit-any": "warn",
     "typescript/explicit-function-return-type": "off"
   },
-  "ignorePatterns": [
-    "dist/**",
-    "node_modules/**",
-    "src-tauri/target/**",
-    "src-tauri/gen/**"
-  ]
+  "ignorePatterns": ["dist/**", "node_modules/**", "src-tauri/target/**", "src-tauri/gen/**"]
 }

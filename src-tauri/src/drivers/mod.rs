@@ -3,7 +3,7 @@ pub mod postgres;
 pub mod sqlite;
 
 use crate::error::AppResult;
-use crate::models::{ColumnSchema, ConnectionConfig, DatabaseDriver, DatabaseTree, QueryResult, TableSchema};
+use crate::models::{ColumnSchema, ConnectionConfig, DatabaseDriver, DatabaseTree, QueryResult};
 use async_trait::async_trait;
 
 #[async_trait]

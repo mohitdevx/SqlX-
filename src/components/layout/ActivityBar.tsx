@@ -1,21 +1,20 @@
-import React from 'react';
-import { Database, Terminal, Table2, Layers, Palette } from 'lucide-react';
+import { Database, Palette, Terminal } from 'lucide-react';
+import type React from 'react';
 
 interface ActivityBarProps {
-  activeView: 'explorer' | 'query' | 'visualizer' | 'theme';
-  setActiveView: (view: 'explorer' | 'query' | 'visualizer' | 'theme') => void;
+  activeView: 'explorer' | 'query' | 'theme';
+  setActiveView: (view: 'explorer' | 'query' | 'theme') => void;
 }
 
 export const ActivityBar: React.FC<ActivityBarProps> = ({ activeView, setActiveView }) => {
   const items = [
-    { id: 'explorer', icon: Database, label: 'Schema Explorer' },
-    { id: 'query', icon: Terminal, label: 'SQL Query Tabs' },
-    { id: 'visualizer', icon: Table2, label: 'Table Visualizer' },
-    { id: 'theme', icon: Palette, label: 'JSON Theme Switcher' },
+    { id: 'query', icon: Terminal, label: 'SQL Query Workspace' },
+    { id: 'explorer', icon: Database, label: 'Database & Schema Explorer' },
+    { id: 'theme', icon: Palette, label: 'Solid Themes & JSON Engine' },
   ] as const;
 
   return (
-    <aside className="w-12 bg-bg-surface border-r border-border-subtle flex flex-col items-center py-2 space-y-1">
+    <aside className="w-12 bg-bg-surface border-r border-border-subtle flex flex-col items-center py-2 space-y-1 select-none">
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = activeView === item.id;

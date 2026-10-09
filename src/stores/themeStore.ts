@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { SqlXTheme } from '@/types/theme';
 import { applyTheme } from '@/services/themeEngine';
+import type { SqlXTheme } from '@/types/theme';
+import { create } from 'zustand';
 
 const defaultDarkTheme: SqlXTheme = {
   name: 'Dark Solid',
@@ -71,7 +71,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   loadCustomThemeJson: (jsonString) => {
     try {
       const parsed = JSON.parse(jsonString) as SqlXTheme;
-      if (parsed && parsed.colors && parsed.name) {
+      if (parsed?.colors && parsed?.name) {
         applyTheme(parsed);
         set({ currentTheme: parsed });
         return true;

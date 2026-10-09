@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { QueryResult } from '@/types/database';
 import { executeQuery } from '@/services/tauriBridge';
+import type { QueryResult } from '@/types/database';
+import { create } from 'zustand';
 
 export interface QueryTab {
   id: string;
@@ -65,7 +65,8 @@ export const useQueryStore = create<QueryStoreState>((set, get) => ({
         };
         return { tabs: [fallback], activeTabId: fallback.id };
       }
-      const newActive = state.activeTabId === id ? remaining[remaining.length - 1].id : state.activeTabId;
+      const newActive =
+        state.activeTabId === id ? remaining[remaining.length - 1].id : state.activeTabId;
       return { tabs: remaining, activeTabId: newActive };
     });
   },

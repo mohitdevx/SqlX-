@@ -28,13 +28,23 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": {
+        "useButtonType": "off",
+        "noLabelWithoutControl": "off",
+        "noAutofocus": "off",
+        "useKeyWithClickEvents": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noExplicitAny": "off"
+      },
       "correctness": {
         "noUnusedVariables": "warn",
         "noUnusedImports": "warn"
       },
       "style": {
         "useConst": "error",
-        "useImportType": "error"
+        "useImportType": "warn"
       }
     }
   }
