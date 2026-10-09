@@ -20,10 +20,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
   return (
     <header className="titlebar-root h-14 bg-[#0c0d10] border-b border-white/[0.06] flex items-center justify-between px-6 py-2.5 select-none z-30 shrink-0">
       {/* ── Left: Brand ── */}
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center shadow-sm">
-          <Zap className="w-4 h-4 text-[#0c0d10]" strokeWidth={2.5} />
-        </div>
+      <div className="flex items-center gap-2.5 shrink-0">
+        <Zap className="w-4 h-4 text-white" strokeWidth={2} />
         <div className="flex items-baseline gap-1.5">
           <span className="text-sm font-semibold tracking-tight text-white/90">SqlX</span>
           <span className="text-[10px] font-mono text-white/30 tracking-wider uppercase">
