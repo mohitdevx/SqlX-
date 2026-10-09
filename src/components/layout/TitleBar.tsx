@@ -1,100 +1,60 @@
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
-import { ChevronDown, Database, Loader2, Play, Search, Settings, Zap } from 'lucide-react';
+import { Loader2, Play, Search, Settings, Zap } from 'lucide-react';
 import type React from 'react';
 
 interface TitleBarProps {
-  onOpenNewConnection: () => void;
+  onOpenNewConnection?: () => void;
   onOpenCommandPalette: () => void;
   onOpenThemeManager: () => void;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({
-  onOpenNewConnection,
-  onOpenCommandPalette,
-  onOpenThemeManager,
-}) => {
+export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpenThemeManager }) => {
   const { runActiveQuery, tabs, activeTabId, selectedSql } = useQueryStore();
-  const { activeConnectionId, connections } = useConnectionStore();
+  const { activeConnectionId } = useConnectionStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
-  const currentConn = connections.find((c) => c.id === activeConnectionId);
 
   const hasSelection = Boolean(selectedSql && selectedSql.trim().length > 0);
   const isRunning = activeTab?.isRunning ?? false;
 
   return (
-    <header className="titlebar-root h-11 bg-[#0c0d10] border-b border-white/[0.06] flex items-center justify-between pl-3 pr-2 select-none z-30">
-      {/* ── Left: Brand + Connection ── */}
-      <div className="flex items-center gap-3 min-w-0 shrink-0">
-        {/* Brand Mark */}
-        <div className="flex items-center gap-1.5">
-          <div className="w-[18px] h-[18px] rounded-[4px] bg-white/90 flex items-center justify-center">
-            <Zap className="w-[10px] h-[10px] text-[#0c0d10]" strokeWidth={2.5} />
-          </div>
-          <span className="text-[11px] font-semibold tracking-[0.02em] text-white/70">SqlX</span>
+    <header className="titlebar-root h-13 bg-[#0c0d10] border-b border-white/[0.06] flex items-center justify-between px-5 select-none z-30">
+      {/* ── Left: Clean Brand ── */}
+      <div className="flex items-center gap-2.5 min-w-0 shrink-0">
+        <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center shadow-sm">
+          <Zap className="w-3.5 h-3.5 text-[#0c0d10]" strokeWidth={2.5} />
         </div>
-
-        {/* Separator */}
-        <div className="w-px h-3 bg-white/[0.08]" />
-
-        {/* Connection Indicator */}
-        {currentConn ? (
-          <button
-            onClick={onOpenNewConnection}
-            className="group flex items-center gap-1.5 px-2 py-[3px] rounded-md hover:bg-white/[0.04] transition-colors duration-150"
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400/40 animate-ping" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            </span>
-            <span className="text-[11px] font-medium text-white/60 group-hover:text-white/80 transition-colors">
-              {currentConn.name}
-            </span>
-            <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">
-              {currentConn.driver}
-            </span>
-            <ChevronDown
-              className="w-2.5 h-2.5 text-white/20 group-hover:text-white/40 transition-colors"
-              strokeWidth={1.5}
-            />
-          </button>
-        ) : (
-          <button
-            onClick={onOpenNewConnection}
-            className="group flex items-center gap-1.5 px-2 py-[3px] rounded-md hover:bg-white/[0.04] transition-colors duration-150"
-          >
-            <Database
-              className="w-3 h-3 text-white/30 group-hover:text-white/50"
-              strokeWidth={1.5}
-            />
-            <span className="text-[11px] text-white/40 group-hover:text-white/60 transition-colors">
-              No connection
-            </span>
-          </button>
-        )}
+        <div className="flex flex-col">
+          <span className="text-xs font-semibold tracking-wide text-white/90 leading-tight">
+            SqlX
+          </span>
+          <span className="text-[9px] font-mono text-white/30 tracking-wider uppercase leading-none">
+            Studio
+          </span>
+        </div>
       </div>
 
-      {/* ── Center: Command Bar ── */}
-      <div className="flex-1 flex items-center justify-center px-6 max-w-md mx-auto">
+      {/* ── Center: Search / Command Bar ── */}
+      <div className="flex-1 flex items-center justify-center px-8 max-w-lg mx-auto">
         <button
           onClick={onOpenCommandPalette}
-          className="w-full flex items-center gap-2 px-2.5 py-[4px] rounded-lg bg-white/[0.03] border border-white/[0.05] hover:border-white/[0.1] hover:bg-white/[0.05] transition-all duration-150 group"
+          className="w-full h-8 flex items-center gap-2.5 px-3 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.06] transition-all duration-150 group shadow-sm"
         >
           <Search
-            className="w-3 h-3 text-white/20 group-hover:text-white/35 transition-colors"
+            className="w-3.5 h-3.5 text-white/25 group-hover:text-white/40 transition-colors"
             strokeWidth={1.5}
           />
-          <span className="flex-1 text-left text-[11px] text-white/25 group-hover:text-white/40 transition-colors">
-            Search commands…
+          <span className="flex-1 text-left text-xs text-white/30 group-hover:text-white/50 transition-colors">
+            Search commands, tables, actions…
           </span>
-          <kbd className="text-[9px] font-mono text-white/15 border border-white/[0.06] px-1 py-px rounded">
+          <kbd className="text-[10px] font-mono text-white/20 border border-white/[0.08] px-1.5 py-0.5 rounded bg-white/[0.02]">
             ⌘K
           </kbd>
         </button>
       </div>
 
-      {/* ── Right: Execute + Settings ── */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      {/* ── Right: Action & Settings ── */}
+      <div className="flex items-center gap-2.5 shrink-0">
         {/* Execute Button */}
         <button
           onClick={() => {
@@ -103,27 +63,27 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             }
           }}
           disabled={!activeConnectionId || isRunning}
-          className={`group flex items-center gap-1.5 h-[26px] px-2.5 rounded-md text-[11px] font-medium transition-all duration-150 disabled:opacity-25 disabled:pointer-events-none ${
+          className={`group flex items-center gap-2 h-8 px-3 rounded-lg text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:pointer-events-none shadow-sm ${
             isRunning
               ? 'bg-white/[0.06] text-white/60'
               : hasSelection
-                ? 'bg-white/90 text-[#0c0d10] hover:bg-white shadow-[0_0_12px_rgba(255,255,255,0.06)]'
-                : 'bg-white/[0.08] text-white/70 hover:bg-white/[0.12] hover:text-white/90'
+                ? 'bg-white text-[#0c0d10] hover:bg-white/90 shadow-[0_0_16px_rgba(255,255,255,0.08)]'
+                : 'bg-white/[0.08] text-white/80 hover:bg-white/[0.13] hover:text-white'
           }`}
         >
           {isRunning ? (
-            <Loader2 className="w-3 h-3 animate-spin" strokeWidth={2} />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2} />
           ) : (
             <Play
-              className={`w-3 h-3 ${hasSelection ? 'fill-[#0c0d10]' : 'fill-white/70 group-hover:fill-white/90'}`}
+              className={`w-3.5 h-3.5 ${hasSelection ? 'fill-[#0c0d10]' : 'fill-white/80 group-hover:fill-white'}`}
               strokeWidth={0}
             />
           )}
           <span>{isRunning ? 'Running' : hasSelection ? 'Run Selection' : 'Execute'}</span>
           {!isRunning && (
             <kbd
-              className={`text-[9px] font-mono px-1 py-px rounded ${
-                hasSelection ? 'bg-black/10 text-[#0c0d10]/50' : 'bg-white/[0.06] text-white/25'
+              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                hasSelection ? 'bg-black/10 text-[#0c0d10]/60' : 'bg-white/[0.06] text-white/30'
               }`}
             >
               F5
@@ -131,16 +91,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           )}
         </button>
 
-        {/* Separator */}
-        <div className="w-px h-3.5 bg-white/[0.06] mx-0.5" />
+        <div className="w-px h-4 bg-white/[0.06]" />
 
         {/* Settings */}
         <button
           onClick={onOpenThemeManager}
-          className="w-7 h-7 flex items-center justify-center rounded-md text-white/25 hover:text-white/50 hover:bg-white/[0.04] transition-all duration-150"
-          title="Settings"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-150"
+          title="Settings & Appearance"
         >
-          <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <Settings className="w-4 h-4" strokeWidth={1.5} />
         </button>
       </div>
     </header>
