@@ -1,27 +1,28 @@
 import { applyTheme } from '@/services/themeEngine';
 import type { SqlXTheme } from '@/types/theme';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const defaultDarkTheme: SqlXTheme = {
-  name: 'Dark Solid',
+  name: 'Obsidian Solid (Default)',
   type: 'dark',
   colors: {
     background: {
-      base: '#0e0e11',
-      surface: '#141418',
-      overlay: '#1c1c22',
-      elevated: '#23232b',
+      base: '#090a0c',
+      surface: '#0f1013',
+      overlay: '#15171c',
+      elevated: '#1c1f26',
     },
     border: {
-      subtle: '#25252e',
-      default: '#33333f',
-      strong: '#474757',
+      subtle: '#1e2229',
+      default: '#282c35',
+      strong: '#3b404d',
     },
     text: {
-      primary: '#f4f4f6',
-      secondary: '#a1a1aa',
-      muted: '#71717a',
-      inverse: '#09090b',
+      primary: '#f3f4f6',
+      secondary: '#9ca3af',
+      muted: '#6b7280',
+      inverse: '#090a0c',
     },
     accent: {
       primary: '#3b82f6',
@@ -36,22 +37,22 @@ const defaultDarkTheme: SqlXTheme = {
       info: '#06b6d4',
     },
     editor: {
-      background: '#111115',
-      cursor: '#f4f4f6',
+      background: '#0b0c0f',
+      cursor: '#60a5fa',
       selection: '#1e3a5f',
-      lineHighlight: '#17171e',
-      gutterBackground: '#111115',
-      gutterForeground: '#52525b',
+      lineHighlight: '#12141a',
+      gutterBackground: '#0b0c0f',
+      gutterForeground: '#4b5563',
     },
     grid: {
-      headerBackground: '#17171e',
-      headerText: '#e4e4e7',
-      rowEven: '#111115',
-      rowOdd: '#141418',
-      rowHover: '#1f1f28',
-      rowSelected: '#1e3a5f',
-      cellBorder: '#25252e',
-      nullValue: '#71717a',
+      headerBackground: '#121418',
+      headerText: '#e5e7eb',
+      rowEven: '#0b0c0f',
+      rowOdd: '#0f1014',
+      rowHover: '#181b22',
+      rowSelected: '#1e293b',
+      cellBorder: '#1a1d24',
+      nullValue: '#6b7280',
     },
   },
 };
@@ -62,23 +63,35 @@ interface ThemeState {
   loadCustomThemeJson: (jsonString: string) => boolean;
 }
 
-export const useThemeStore = create<ThemeState>((set) => ({
-  currentTheme: defaultDarkTheme,
-  setTheme: (theme) => {
-    applyTheme(theme);
-    set({ currentTheme: theme });
-  },
-  loadCustomThemeJson: (jsonString) => {
-    try {
-      const parsed = JSON.parse(jsonString) as SqlXTheme;
-      if (parsed?.colors && parsed?.name) {
-        applyTheme(parsed);
-        set({ currentTheme: parsed });
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
+export const useThemeStore = create<ThemeState>()(
+  persist(
+    (set) => ({
+      currentTheme: defaultDarkTheme,
+      setTheme: (theme) => {
+        applyTheme(theme);
+        set({ currentTheme: theme });
+      },
+      loadCustomThemeJson: (jsonString) => {
+        try {
+          const parsed = JSON.parse(jsonString) as SqlXTheme;
+          if (parsed?.colors && parsed?.name) {
+            applyTheme(parsed);
+            set({ currentTheme: parsed });
+            return true;
+          }
+          return false;
+        } catch {
+          return false;
+        }
+      },
+    }),
+    {
+      name: 'sqlx-theme-storage-v1',
+      onRehydrateStorage: () => (state) => {
+        if (state?.currentTheme) {
+          applyTheme(state.currentTheme);
+        }
+      },
     }
-  },
-}));
+  )
+);

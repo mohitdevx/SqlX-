@@ -12,18 +12,18 @@ export const StatusBar: React.FC = () => {
   const currentConn = connections.find((c) => c.id === activeConnectionId);
 
   return (
-    <footer className="h-[22px] bg-[#0a0b0e] border-t border-white/[0.04] flex items-center justify-between px-3 text-[10px] font-mono text-white/20 select-none">
+    <footer className="h-[22px] bg-bg-surface border-t border-border-subtle flex items-center justify-between px-3 text-[10px] font-mono text-tx-muted select-none transition-colors duration-150">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5">
           {currentConn ? (
             <>
-              <span className="w-1 h-1 rounded-full bg-emerald-400/60 inline-block" />
-              <span className="text-white/35 font-medium">{currentConn.name}</span>
-              <span className="text-white/15 uppercase">{currentConn.driver}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success inline-block" />
+              <span className="text-tx-primary font-medium">{currentConn.name}</span>
+              <span className="text-tx-muted uppercase">({currentConn.driver})</span>
             </>
           ) : (
             <>
-              <span className="w-1 h-1 rounded-full bg-white/20 inline-block" />
+              <span className="w-1.5 h-1.5 rounded-full bg-tx-muted inline-block" />
               <span>Ready</span>
             </>
           )}
@@ -34,14 +34,14 @@ export const StatusBar: React.FC = () => {
         {activeTab?.result && (
           <>
             <div className="flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5 text-white/15" strokeWidth={1.5} />
+              <Clock className="w-2.5 h-2.5 text-tx-muted" strokeWidth={1.5} />
               <span>{activeTab.result.executionTimeMs}ms</span>
             </div>
             <div>{activeTab.result.rows.length} rows</div>
           </>
         )}
-        <div className="text-white/12">{currentTheme.name}</div>
-        <div className="text-white/12">UTF-8</div>
+        <div className="text-tx-muted">{currentTheme.name}</div>
+        <div className="text-tx-muted">UTF-8</div>
       </div>
     </footer>
   );

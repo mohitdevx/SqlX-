@@ -19,7 +19,7 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
   ] as const;
 
   return (
-    <aside className="w-10 bg-[#0a0b0e] border-r border-white/[0.04] flex flex-col items-center justify-between py-2.5 select-none z-10">
+    <aside className="w-10 bg-bg-surface border-r border-border-subtle flex flex-col items-center justify-between py-2.5 select-none z-10 transition-colors duration-150">
       {/* Top Nav Items */}
       <div className="flex flex-col items-center gap-0.5 w-full">
         {navItems.map((item) => {
@@ -28,15 +28,15 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
           return (
             <div key={item.id} className="relative w-full flex items-center justify-center">
               {isActive && (
-                <div className="absolute left-0 w-[2px] h-3.5 rounded-r-full bg-white/50" />
+                <div className="absolute left-0 w-[2px] h-3.5 rounded-r-full bg-accent-primary" />
               )}
               <button
                 onClick={() => setActiveView(item.id)}
                 title={item.label}
                 className={`w-7 h-7 rounded-md flex items-center justify-center transition-all duration-150 ${
                   isActive
-                    ? 'text-white/70'
-                    : 'text-white/20 hover:text-white/40 hover:bg-white/[0.03]'
+                    ? 'text-accent-primary bg-bg-elevated'
+                    : 'text-tx-muted hover:text-tx-primary hover:bg-bg-overlay'
                 }`}
               >
                 <Icon className="w-[15px] h-[15px]" strokeWidth={1.5} />
@@ -51,7 +51,7 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
         <button
           onClick={onOpenNewConnection}
           title="New Connection"
-          className="w-7 h-7 rounded-md flex items-center justify-center text-white/15 hover:text-white/35 hover:bg-white/[0.03] transition-all duration-150"
+          className="w-7 h-7 rounded-md flex items-center justify-center text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-all duration-150"
         >
           <Plus className="w-[15px] h-[15px]" strokeWidth={1.5} />
         </button>

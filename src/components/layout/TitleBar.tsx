@@ -18,13 +18,13 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
   const isRunning = activeTab?.isRunning ?? false;
 
   return (
-    <header className="titlebar-root h-14 bg-[#0c0d10] border-b border-white/[0.06] flex items-center justify-between px-6 py-2.5 select-none z-30 shrink-0">
+    <header className="titlebar-root h-14 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-6 py-2.5 select-none z-30 shrink-0 transition-colors duration-150">
       {/* ── Left: Brand ── */}
       <div className="flex items-center gap-2.5 shrink-0">
-        <Zap className="w-4 h-4 text-white" strokeWidth={2} />
+        <Zap className="w-4 h-4 text-tx-primary" strokeWidth={2} />
         <div className="flex items-baseline gap-1.5">
-          <span className="text-sm font-semibold tracking-tight text-white/90">SqlX</span>
-          <span className="text-[10px] font-mono text-white/30 tracking-wider uppercase">
+          <span className="text-sm font-semibold tracking-tight text-tx-primary">SqlX</span>
+          <span className="text-[10px] font-mono text-tx-muted tracking-wider uppercase">
             Studio
           </span>
         </div>
@@ -34,16 +34,16 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
       <div className="flex items-center justify-center px-4">
         <button
           onClick={onOpenCommandPalette}
-          className="w-80 md:w-96 h-8 flex items-center gap-2.5 px-3 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.06] transition-all duration-150 group shadow-sm"
+          className="w-80 md:w-96 h-8 flex items-center gap-2.5 px-3 rounded-lg bg-bg-base border border-border-subtle hover:border-border-default hover:bg-bg-overlay transition-all duration-150 group shadow-sm"
         >
           <Search
-            className="w-3.5 h-3.5 text-white/25 group-hover:text-white/40 transition-colors shrink-0"
+            className="w-3.5 h-3.5 text-tx-muted group-hover:text-tx-secondary transition-colors shrink-0"
             strokeWidth={1.5}
           />
-          <span className="flex-1 text-left text-xs text-white/30 group-hover:text-white/50 transition-colors truncate">
+          <span className="flex-1 text-left text-xs text-tx-muted group-hover:text-tx-secondary transition-colors truncate">
             Search commands, queries, actions…
           </span>
-          <kbd className="text-[10px] font-mono text-white/20 border border-white/[0.08] px-1.5 py-0.5 rounded bg-white/[0.02] shrink-0">
+          <kbd className="text-[10px] font-mono text-tx-muted border border-border-subtle px-1.5 py-0.5 rounded bg-bg-surface shrink-0">
             ⌘K
           </kbd>
         </button>
@@ -61,17 +61,17 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
           disabled={!activeConnectionId || isRunning}
           className={`group flex items-center gap-2 h-8 px-3.5 rounded-lg text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:pointer-events-none shadow-sm ${
             isRunning
-              ? 'bg-white/[0.06] text-white/60'
+              ? 'bg-bg-overlay text-tx-muted border border-border-subtle'
               : hasSelection
-                ? 'bg-white text-[#0c0d10] hover:bg-white/90 shadow-[0_0_16px_rgba(255,255,255,0.08)] font-semibold'
-                : 'bg-white/[0.08] text-white/80 hover:bg-white/[0.13] hover:text-white'
+                ? 'bg-tx-primary text-tx-inverse hover:opacity-90 font-semibold'
+                : 'bg-bg-base text-tx-primary border border-border-subtle hover:border-border-default hover:bg-bg-overlay'
           }`}
         >
           {isRunning ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2} />
           ) : (
             <Play
-              className={`w-3 h-3 ${hasSelection ? 'fill-[#0c0d10]' : 'fill-white/80 group-hover:fill-white'}`}
+              className={`w-3 h-3 ${hasSelection ? 'fill-tx-inverse' : 'fill-current'}`}
               strokeWidth={0}
             />
           )}
@@ -79,7 +79,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
           {!isRunning && (
             <kbd
               className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                hasSelection ? 'bg-black/10 text-[#0c0d10]/60' : 'bg-white/[0.06] text-white/30'
+                hasSelection
+                  ? 'bg-tx-inverse/10 text-tx-inverse'
+                  : 'bg-bg-surface text-tx-muted border border-border-subtle'
               }`}
             >
               F5
@@ -87,12 +89,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
           )}
         </button>
 
-        <div className="w-px h-4 bg-white/[0.06]" />
+        <div className="w-px h-4 bg-border-subtle" />
 
         {/* Settings Button */}
         <button
           onClick={onOpenThemeManager}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all duration-150"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-all duration-150"
           title="Settings & Appearance"
         >
           <Settings className="w-4 h-4" strokeWidth={1.5} />
