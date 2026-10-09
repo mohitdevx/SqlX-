@@ -1,6 +1,8 @@
 use super::DatabaseAdapter;
 use crate::error::{AppError, AppResult};
-use crate::models::{ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema};
+use crate::models::{
+    ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
+};
 use crate::utils::sql_parser::split_sql_statements;
 use async_trait::async_trait;
 use sqlx::mysql::MySqlPoolOptions;
@@ -19,7 +21,10 @@ impl MysqlAdapter {
         let password = config.password.as_deref().unwrap_or("");
         let database = config.database.as_deref().unwrap_or("");
 
-        let url = format!("mysql://{}:{}@{}:{}/{}", user, password, host, port, database);
+        let url = format!(
+            "mysql://{}:{}@{}:{}/{}",
+            user, password, host, port, database
+        );
 
         let pool = MySqlPoolOptions::new()
             .max_connections(5)

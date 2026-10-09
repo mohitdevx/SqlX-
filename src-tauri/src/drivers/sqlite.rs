@@ -1,6 +1,8 @@
 use super::DatabaseAdapter;
 use crate::error::{AppError, AppResult};
-use crate::models::{ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema};
+use crate::models::{
+    ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
+};
 use crate::utils::sql_parser::split_sql_statements;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePoolOptions;

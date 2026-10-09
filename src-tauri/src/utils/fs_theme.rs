@@ -17,7 +17,7 @@ pub fn get_themes_dir() -> AppResult<PathBuf> {
     })?;
     config_dir.push("sqlx");
     config_dir.push("themes");
-    
+
     if !config_dir.exists() {
         fs::create_dir_all(&config_dir)?;
     }

@@ -1,6 +1,8 @@
 use super::DatabaseAdapter;
 use crate::error::{AppError, AppResult};
-use crate::models::{ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema};
+use crate::models::{
+    ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
+};
 use crate::utils::sql_parser::split_sql_statements;
 use async_trait::async_trait;
 use sqlx::postgres::PgPoolOptions;
@@ -19,7 +21,11 @@ impl PostgresAdapter {
         let password = config.password.as_deref().unwrap_or("");
         let database = config.database.as_deref().unwrap_or("postgres");
 
-        let ssl_mode = if config.ssl.unwrap_or(false) { "require" } else { "disable" };
+        let ssl_mode = if config.ssl.unwrap_or(false) {
+            "require"
+        } else {
+            "disable"
+        };
         let url = format!(
             "postgres://{}:{}@{}:{}/{}?sslmode={}",
             user, password, host, port, database, ssl_mode
@@ -105,7 +111,8 @@ impl DatabaseAdapter for PostgresAdapter {
                                             match float_val {
                                                 Ok(f) => serde_json::json!(f),
                                                 Err(_) => {
-                                                    let bool_val: Result<bool, _> = row.try_get(idx);
+                                                    let bool_val: Result<bool, _> =
+                                                        row.try_get(idx);
                                                     match bool_val {
                                                         Ok(b) => serde_json::json!(b),
                                                         Err(_) => serde_json::Value::Null,
@@ -153,10 +160,12 @@ impl DatabaseAdapter for PostgresAdapter {
     }
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
-        let db_rows = sqlx::raw_sql("SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;")
-            .fetch_all(&self.pool)
-            .await
-            .map_err(AppError::Database)?;
+        let db_rows = sqlx::raw_sql(
+            "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(AppError::Database)?;
 
         let databases: Vec<String> = db_rows.iter().filter_map(|r| r.try_get(0).ok()).collect();
 
