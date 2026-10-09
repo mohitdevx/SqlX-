@@ -21,7 +21,7 @@ pub fn get_themes_dir() -> AppResult<PathBuf> {
     if !config_dir.exists() {
         fs::create_dir_all(&config_dir)?;
     }
-    
+
     Ok(config_dir)
 }
 
@@ -33,7 +33,10 @@ pub fn list_custom_themes() -> AppResult<Vec<ThemeMetadata>> {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) == Some("json") {
-                let file_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown");
+                let file_name = path
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("unknown");
                 if let Ok(content) = fs::read_to_string(&path) {
                     if let Ok(val) = serde_json::from_str::<serde_json::Value>(&content) {
                         let name = val["name"].as_str().unwrap_or(file_name).to_string();

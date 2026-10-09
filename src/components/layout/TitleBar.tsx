@@ -51,7 +51,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
 
       {/* ── Right: Execute & Settings ── */}
       <div className="flex items-center gap-2.5 shrink-0">
-        {/* Execute Query Button */}
+        {/* Execute / Run Button (Fixed width, never expands/contracts, solid theme color) */}
         <button
           onClick={() => {
             if (activeConnectionId) {
@@ -59,31 +59,17 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
             }
           }}
           disabled={!activeConnectionId || isRunning}
-          className={`group flex items-center gap-2 h-8 px-3.5 rounded-lg text-xs font-medium transition-all duration-150 disabled:opacity-25 disabled:pointer-events-none shadow-sm ${
-            isRunning
-              ? 'bg-bg-overlay text-tx-muted border border-border-subtle'
-              : hasSelection
-                ? 'bg-tx-primary text-tx-inverse hover:opacity-90 font-semibold'
-                : 'bg-bg-base text-tx-primary border border-border-subtle hover:border-border-default hover:bg-bg-overlay'
-          }`}
+          className="group flex items-center justify-center gap-2 h-8 w-[112px] shrink-0 rounded-lg text-xs font-semibold bg-accent-primary text-accent-text hover:bg-accent-primary-hover active:bg-accent-primary-active transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm select-none"
+          title={hasSelection ? 'Run selected SQL (F5)' : 'Execute SQL script (F5)'}
         >
           {isRunning ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" strokeWidth={2} />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-accent-text" strokeWidth={2} />
           ) : (
-            <Play
-              className={`w-3 h-3 ${hasSelection ? 'fill-tx-inverse' : 'fill-current'}`}
-              strokeWidth={0}
-            />
+            <Play className="w-3 h-3 fill-current text-accent-text" strokeWidth={0} />
           )}
-          <span>{isRunning ? 'Running' : hasSelection ? 'Run Selection' : 'Execute'}</span>
+          <span className="truncate">{hasSelection ? 'Run' : 'Execute'}</span>
           {!isRunning && (
-            <kbd
-              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                hasSelection
-                  ? 'bg-tx-inverse/10 text-tx-inverse'
-                  : 'bg-bg-surface text-tx-muted border border-border-subtle'
-              }`}
-            >
+            <kbd className="text-[10px] font-mono px-1 py-0.5 rounded bg-black/20 text-accent-text/90 leading-none">
               F5
             </kbd>
           )}

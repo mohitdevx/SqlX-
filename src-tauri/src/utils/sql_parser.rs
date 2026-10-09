@@ -11,10 +11,19 @@ pub fn split_sql_statements(sql: &str) -> Vec<String> {
 
     while i < len {
         let c = chars[i];
-        let next = if i + 1 < len { Some(chars[i + 1]) } else { None };
+        let next = if i + 1 < len {
+            Some(chars[i + 1])
+        } else {
+            None
+        };
 
         // Handle line comment (-- ...)
-        if !in_single_quote && !in_double_quote && !in_block_comment && c == '-' && next == Some('-') {
+        if !in_single_quote
+            && !in_double_quote
+            && !in_block_comment
+            && c == '-'
+            && next == Some('-')
+        {
             in_line_comment = true;
         }
         if in_line_comment {
@@ -27,7 +36,8 @@ pub fn split_sql_statements(sql: &str) -> Vec<String> {
         }
 
         // Handle block comment (/* ... */)
-        if !in_single_quote && !in_double_quote && !in_line_comment && c == '/' && next == Some('*') {
+        if !in_single_quote && !in_double_quote && !in_line_comment && c == '/' && next == Some('*')
+        {
             in_block_comment = true;
         }
         if in_block_comment {

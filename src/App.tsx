@@ -224,10 +224,10 @@ export const App: React.FC = () => {
                         onClick={() => {
                           if (activeConnectionId) runActiveQuery(activeConnectionId);
                         }}
-                        className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-tx-primary text-tx-inverse hover:opacity-90 text-[9px] font-semibold transition-colors shadow-sm"
+                        className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-primary text-accent-text hover:bg-accent-primary-hover text-[9px] font-semibold transition-colors shadow-sm"
                       >
                         <Play className="w-2 h-2 fill-current" strokeWidth={0} />
-                        <span>Run Selection</span>
+                        <span>Run</span>
                       </button>
                     )}
 
