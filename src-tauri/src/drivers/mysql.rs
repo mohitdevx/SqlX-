@@ -35,7 +35,7 @@ impl MysqlAdapter {
 #[async_trait]
 impl DatabaseAdapter for MysqlAdapter {
     async fn ping(&self) -> AppResult<()> {
-        sqlx::query("SELECT 1")
+        sqlx::raw_sql("SELECT 1")
             .execute(&self.pool)
             .await
             .map_err(AppError::Database)?;
@@ -63,7 +63,7 @@ impl DatabaseAdapter for MysqlAdapter {
                 continue;
             }
 
-            let rows = sqlx::query(trimmed)
+            let rows = sqlx::raw_sql(trimmed)
                 .fetch_all(&self.pool)
                 .await
                 .map_err(AppError::Database)?;
@@ -142,14 +142,14 @@ impl DatabaseAdapter for MysqlAdapter {
     }
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
-        let db_rows = sqlx::query("SHOW DATABASES;")
+        let db_rows = sqlx::raw_sql("SHOW DATABASES;")
             .fetch_all(&self.pool)
             .await
             .map_err(AppError::Database)?;
 
         let databases: Vec<String> = db_rows.iter().filter_map(|r| r.try_get(0).ok()).collect();
 
-        let table_rows = sqlx::query(
+        let table_rows = sqlx::raw_sql(
             "SELECT table_schema, table_name, table_type FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys') ORDER BY table_name;"
         )
         .fetch_all(&self.pool)
@@ -170,9 +170,11 @@ impl DatabaseAdapter for MysqlAdapter {
     }
 
     async fn get_table_columns(&self, table_name: &str) -> AppResult<Vec<ColumnSchema>> {
-        let query_str = "SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = ? ORDER BY ordinal_position;";
-        let rows = sqlx::query(query_str)
-            .bind(table_name)
+        let query_str = format!(
+            "SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = '{}' ORDER BY ordinal_position;",
+            table_name.replace('\'', "''")
+        );
+        let rows = sqlx::raw_sql(&query_str)
             .fetch_all(&self.pool)
             .await
             .map_err(AppError::Database)?;

@@ -29,7 +29,7 @@ impl SqliteAdapter {
 #[async_trait]
 impl DatabaseAdapter for SqliteAdapter {
     async fn ping(&self) -> AppResult<()> {
-        sqlx::query("SELECT 1")
+        sqlx::raw_sql("SELECT 1")
             .execute(&self.pool)
             .await
             .map_err(AppError::Database)?;
@@ -57,7 +57,7 @@ impl DatabaseAdapter for SqliteAdapter {
                 continue;
             }
 
-            let rows = sqlx::query(trimmed)
+            let rows = sqlx::raw_sql(trimmed)
                 .fetch_all(&self.pool)
                 .await
                 .map_err(AppError::Database)?;
@@ -136,7 +136,7 @@ impl DatabaseAdapter for SqliteAdapter {
     }
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
-        let table_rows = sqlx::query(
+        let table_rows = sqlx::raw_sql(
             "SELECT name, type FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%' ORDER BY name;"
         )
         .fetch_all(&self.pool)
@@ -161,7 +161,7 @@ impl DatabaseAdapter for SqliteAdapter {
 
     async fn get_table_columns(&self, table_name: &str) -> AppResult<Vec<ColumnSchema>> {
         let pragma_sql = format!("PRAGMA table_info({});", table_name);
-        let rows = sqlx::query(&pragma_sql)
+        let rows = sqlx::raw_sql(&pragma_sql)
             .fetch_all(&self.pool)
             .await
             .map_err(AppError::Database)?;
