@@ -59,15 +59,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isLoading: isConnecting,
   } = useConnectionStore();
 
-  const {
-    createTab,
-    runActiveQuery,
-    updateSql,
-    tabs,
-    history,
-    savedQueries,
-    activeTabId,
-  } = useQueryStore();
+  const { createTab, runActiveQuery, updateSql, tabs, history, savedQueries, activeTabId } =
+    useQueryStore();
 
   // Mouse-resizable sidebar width (min 180px, max 500px)
   const [sidebarWidth, setSidebarWidth] = useState(260);
@@ -210,7 +203,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return <KeyRound className="w-2.5 h-2.5 text-amber-400 shrink-0" />;
     }
     const dt = dataType.toLowerCase();
-    if (dt.includes('int') || dt.includes('numeric') || dt.includes('float') || dt.includes('decimal')) {
+    if (
+      dt.includes('int') ||
+      dt.includes('numeric') ||
+      dt.includes('float') ||
+      dt.includes('decimal')
+    ) {
       return <Hash className="w-2.5 h-2.5 text-blue-400/80 shrink-0" />;
     }
     if (dt.includes('date') || dt.includes('time')) {
@@ -351,9 +349,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Boxes className="w-3.5 h-3.5" />
                 <span>Extensions</span>
               </div>
-              <span className="px-1.5 py-0.2 rounded bg-accent-primary/10 text-accent-primary font-mono text-[9px] font-semibold border border-accent-primary/20">
-                New
-              </span>
             </button>
           </div>
         </div>
@@ -463,8 +458,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <div className="flex items-center space-x-2.5 min-w-0 flex-1 truncate pr-2">
                         <span
                           style={{
-                            backgroundColor:
-                              conn.color || (isActive ? 'var(--color-accent-primary)' : 'rgba(150, 150, 150, 0.4)'),
+                            backgroundColor: conn.color || '#3b82f6',
                           }}
                           className="w-[3px] h-7 rounded-full shrink-0"
                           title={conn.name}

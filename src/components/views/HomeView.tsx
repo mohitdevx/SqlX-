@@ -1,12 +1,7 @@
 import { testConnection } from '@/services/tauriBridge';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ConnectionConfig, DatabaseDriver } from '@/types/database';
-import {
-  Check,
-  Eye,
-  EyeOff,
-  RefreshCw,
-} from 'lucide-react';
+import { Check, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
@@ -43,7 +38,9 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   const [filePath, setFilePath] = useState('app.sqlite');
   const [ssl, setSsl] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>('#3b82f6');
-  const [environment, setEnvironment] = useState<'development' | 'staging' | 'production'>('development');
+  const [environment, setEnvironment] = useState<'development' | 'staging' | 'production'>(
+    'development'
+  );
   const [showPassword, setShowPassword] = useState(false);
 
   const [testStatus, setTestStatus] = useState<{
@@ -157,9 +154,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       <div className="max-w-2xl w-full mx-auto space-y-8">
         {/* Page Header */}
         <div className="space-y-1">
-          <h1 className="text-lg font-semibold tracking-tight text-tx-primary">
-            New Connection
-          </h1>
+          <h1 className="text-lg font-semibold tracking-tight text-tx-primary">New Connection</h1>
           <p className="text-xs text-tx-muted">
             Configure your database credentials to connect and explore.
           </p>
@@ -343,7 +338,11 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-tx-muted hover:text-tx-primary cursor-pointer p-0.5"
                     >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      {showPassword ? (
+                        <EyeOff className="w-3.5 h-3.5" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -351,9 +350,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
 
               {/* SSL Switch */}
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-tx-secondary">
-                  Enable SSL / TLS encryption
-                </span>
+                <span className="text-xs text-tx-secondary">Enable SSL / TLS encryption</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"

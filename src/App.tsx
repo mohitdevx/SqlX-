@@ -1,7 +1,7 @@
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { ConnectionsDashboard } from '@/components/connection/ConnectionsDashboard';
 import { SqlEditor } from '@/components/editor/SqlEditor';
-import { Sidebar, type NavView } from '@/components/layout/Sidebar';
+import { type NavView, Sidebar } from '@/components/layout/Sidebar';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ResultsPanel } from '@/components/results/ResultsPanel';
 import { ThemeManager } from '@/components/theme/ThemeManager';
@@ -130,9 +130,7 @@ export const App: React.FC = () => {
         />
 
         {/* Home / Add Database Setup View */}
-        {activeView === 'home' && (
-          <HomeView onNavigate={(v) => setActiveView(v)} />
-        )}
+        {activeView === 'home' && <HomeView onNavigate={(v) => setActiveView(v)} />}
 
         {/* Connections Management Dashboard View */}
         {activeView === 'connections' && (

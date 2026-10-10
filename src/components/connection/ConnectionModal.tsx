@@ -119,6 +119,7 @@ export const ConnectionModal: React.FC<ConnectionModalProps> = ({ isOpen, onClos
     password: driver !== 'sqlite' ? password : undefined,
     filePath: driver === 'sqlite' ? filePath : undefined,
     ssl,
+    color: '#3b82f6',
     environment,
   };
 

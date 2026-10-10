@@ -143,7 +143,11 @@ export const useConnectionStore = create<ConnectionState>()(
       name: 'sqlx-connections-store-v2',
       partialize: (state) => ({
         connections: state.connections.filter(
-          (c) => !c.id.startsWith('conn-local-') && c.name !== 'Local PostgreSQL' && c.name !== 'Local MySQL' && c.name !== 'Local SQLite'
+          (c) =>
+            !c.id.startsWith('conn-local-') &&
+            c.name !== 'Local PostgreSQL' &&
+            c.name !== 'Local MySQL' &&
+            c.name !== 'Local SQLite'
         ),
         activeConnectionId: state.activeConnectionId,
       }),
