@@ -1,5 +1,4 @@
 import { CommandPalette } from '@/components/common/CommandPalette';
-import { ConnectionModal } from '@/components/connection/ConnectionModal';
 import { ConnectionsDashboard } from '@/components/connection/ConnectionsDashboard';
 import { SqlEditor } from '@/components/editor/SqlEditor';
 import { Sidebar, type NavView } from '@/components/layout/Sidebar';
@@ -20,7 +19,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<NavView>('query');
-  const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Resizable Split Pane State (percentage height for editor, default 38%)
@@ -117,7 +115,7 @@ export const App: React.FC = () => {
     <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden select-none font-sans">
       {/* Top TitleBar */}
       <TitleBar
-        onOpenNewConnection={() => setIsConnectionModalOpen(true)}
+        onOpenNewConnection={() => setActiveView('home')}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenThemeManager={() => setActiveView('theme')}
       />
@@ -128,21 +126,18 @@ export const App: React.FC = () => {
         <Sidebar
           activeView={activeView}
           setActiveView={setActiveView}
-          onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
+          onOpenNewConnectionModal={() => setActiveView('home')}
         />
 
-        {/* Home Dashboard View */}
+        {/* Home / Add Database Setup View */}
         {activeView === 'home' && (
-          <HomeView
-            onNavigate={(v) => setActiveView(v)}
-            onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
-          />
+          <HomeView onNavigate={(v) => setActiveView(v)} />
         )}
 
         {/* Connections Management Dashboard View */}
         {activeView === 'connections' && (
           <ConnectionsDashboard
-            onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
+            onOpenNewConnectionModal={() => setActiveView('home')}
             onNavigateToEditor={() => setActiveView('query')}
           />
         )}
@@ -292,16 +287,11 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      {/* Modals & Dialogs */}
-      <ConnectionModal
-        isOpen={isConnectionModalOpen}
-        onClose={() => setIsConnectionModalOpen(false)}
-      />
-
+      {/* Command Palette */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onOpenNewConnection={() => setIsConnectionModalOpen(true)}
+        onOpenNewConnection={() => setActiveView('home')}
         onOpenThemeManager={() => setActiveView('theme')}
       />
     </div>

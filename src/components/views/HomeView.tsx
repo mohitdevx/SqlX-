@@ -1,260 +1,421 @@
+import { testConnection } from '@/services/tauriBridge';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { useQueryStore } from '@/stores/queryStore';
+import type { ConnectionConfig, DatabaseDriver } from '@/types/database';
 import {
-  Bookmark,
-  Clock,
-  Database,
-  ExternalLink,
-  Play,
-  Plus,
-  Sparkles,
-  Terminal,
+  Check,
+  Eye,
+  EyeOff,
+  RefreshCw,
 } from 'lucide-react';
 import type React from 'react';
+import { useState } from 'react';
+
+const COLOR_SWATCHES = [
+  { name: 'Blue', value: '#3b82f6', bg: 'bg-blue-500' },
+  { name: 'Emerald', value: '#10b981', bg: 'bg-emerald-500' },
+  { name: 'Amber', value: '#f59e0b', bg: 'bg-amber-500' },
+  { name: 'Purple', value: '#8b5cf6', bg: 'bg-purple-500' },
+  { name: 'Rose', value: '#f43f5e', bg: 'bg-rose-500' },
+  { name: 'Cyan', value: '#06b6d4', bg: 'bg-cyan-500' },
+  { name: 'Orange', value: '#f97316', bg: 'bg-orange-500' },
+];
+
+const DRIVERS: { id: DatabaseDriver; label: string; defaultPort: number }[] = [
+  { id: 'postgres', label: 'PostgreSQL', defaultPort: 5432 },
+  { id: 'mysql', label: 'MySQL', defaultPort: 3306 },
+  { id: 'sqlite', label: 'SQLite', defaultPort: 0 },
+];
 
 interface HomeViewProps {
   onNavigate: (view: 'query' | 'connections' | 'history' | 'saved-queries' | 'extensions') => void;
-  onOpenNewConnectionModal: () => void;
 }
 
-export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenNewConnectionModal }) => {
-  const { connections, activeConnectionId, schemaTree } = useConnectionStore();
-  const { tabs, history, savedQueries, createTab, runActiveQuery } = useQueryStore();
+export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
+  const { connect, addConnection, isLoading: isConnecting } = useConnectionStore();
 
-  const activeConn = connections.find((c) => c.id === activeConnectionId);
+  const [driver, setDriver] = useState<DatabaseDriver>('postgres');
+  const [name, setName] = useState('Local Database');
+  const [host, setHost] = useState('localhost');
+  const [port, setPort] = useState<number>(5432);
+  const [database, setDatabase] = useState('postgres');
+  const [username, setUsername] = useState('postgres');
+  const [password, setPassword] = useState('');
+  const [filePath, setFilePath] = useState('app.sqlite');
+  const [ssl, setSsl] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>('#3b82f6');
+  const [environment, setEnvironment] = useState<'development' | 'staging' | 'production'>('development');
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLaunchTemplate = (title: string, sql: string) => {
-    createTab(sql, title);
-    onNavigate('query');
-    if (activeConnectionId) {
-      setTimeout(() => runActiveQuery(activeConnectionId, sql), 50);
+  const [testStatus, setTestStatus] = useState<{
+    loading: boolean;
+    success?: boolean;
+    message?: string;
+  }>({
+    loading: false,
+  });
+
+  const handleDriverChange = (newDriver: DatabaseDriver) => {
+    setDriver(newDriver);
+    if (newDriver === 'postgres') {
+      setPort(5432);
+      if (!name || name.includes('MySQL') || name.includes('SQLite')) setName('PostgreSQL');
+      if (!database) setDatabase('postgres');
+    } else if (newDriver === 'mysql') {
+      setPort(3306);
+      if (!name || name.includes('PostgreSQL') || name.includes('SQLite')) setName('MySQL');
+      if (!database) setDatabase('mysql');
+      if (!username || username === 'postgres') setUsername('root');
+    } else if (newDriver === 'sqlite') {
+      if (!name || name.includes('PostgreSQL') || name.includes('MySQL')) setName('SQLite');
+      if (!filePath) setFilePath('data.sqlite');
+    }
+    setTestStatus({ loading: false });
+  };
+
+  const getActiveConfig = (): ConnectionConfig => {
+    const id = `conn-${Date.now()}`;
+    if (driver === 'sqlite') {
+      return {
+        id,
+        name: name.trim() || 'SQLite Database',
+        driver: 'sqlite',
+        filePath: filePath.trim() || 'data.sqlite',
+        color: selectedColor,
+        environment,
+      };
+    }
+    return {
+      id,
+      name: name.trim() || `${driver.toUpperCase()} Database`,
+      driver,
+      host: host.trim() || 'localhost',
+      port: Number(port) || (driver === 'postgres' ? 5432 : 3306),
+      database: database.trim() || (driver === 'postgres' ? 'postgres' : 'mysql'),
+      username: username.trim(),
+      password,
+      ssl,
+      color: selectedColor,
+      environment,
+    };
+  };
+
+  const handleTest = async () => {
+    const config = getActiveConfig();
+    setTestStatus({ loading: true });
+
+    try {
+      const ok = await testConnection(config);
+      if (ok) {
+        setTestStatus({
+          loading: false,
+          success: true,
+          message: 'Connection successful',
+        });
+      } else {
+        setTestStatus({
+          loading: false,
+          success: false,
+          message: 'Connection failed: verify host, port, and credentials',
+        });
+      }
+    } catch (err: unknown) {
+      setTestStatus({
+        loading: false,
+        success: false,
+        message: String(err) || 'Connection error',
+      });
     }
   };
 
-  const templates = [
-    {
-      title: 'Server Diagnostics',
-      desc: 'Check database engine uptime, active connection pool, and timestamp.',
-      sql: 'SELECT CURRENT_TIMESTAMP AS server_time, version() AS db_version;',
-    },
-    {
-      title: 'Active Users Audit',
-      desc: 'Inspect most recent active accounts and their privileges.',
-      sql: 'SELECT id, email, role, is_active, created_at FROM users ORDER BY id DESC LIMIT 20;',
-    },
-    {
-      title: 'Order Revenue Summary',
-      desc: 'Aggregate order volumes, completed transactions, and revenues.',
-      sql: 'SELECT status, count(*) AS total_orders, sum(total_amount) AS revenue FROM orders GROUP BY status;',
-    },
-    {
-      title: 'Catalog Inventory Check',
-      desc: 'Spot check low inventory SKUs requiring replenishment.',
-      sql: 'SELECT sku, name, price, stock_quantity FROM products WHERE stock_quantity < 50 ORDER BY stock_quantity ASC LIMIT 15;',
-    },
-  ];
+  const handleConnect = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const config = getActiveConfig();
+    const success = await connect(config);
+    if (success) {
+      onNavigate('query');
+    } else {
+      setTestStatus({
+        loading: false,
+        success: false,
+        message: 'Could not connect. Please check connection parameters.',
+      });
+    }
+  };
+
+  const handleSave = () => {
+    const config = getActiveConfig();
+    addConnection(config);
+    setTestStatus({
+      loading: false,
+      success: true,
+      message: 'Saved to connections list',
+    });
+  };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-bg-base text-tx-primary font-sans select-none p-6 md:p-8">
-      <div className="max-w-6xl w-full mx-auto space-y-6">
-        {/* Hero Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border-subtle">
-          <div>
-            <div className="flex items-center space-x-2.5">
-              <h1 className="text-2xl font-bold tracking-tight text-tx-primary">SqlX Studio</h1>
-              <span className="px-2 py-0.5 text-[10px] font-mono rounded-full bg-accent-primary/10 border border-accent-primary/30 text-accent-primary font-semibold">
-                v1.0 Pro
+    <div className="flex-1 flex flex-col h-full overflow-y-auto bg-bg-base text-tx-primary font-sans select-none px-8 py-10 md:px-16 custom-scrollbar">
+      <div className="max-w-2xl w-full mx-auto space-y-8">
+        {/* Page Header */}
+        <div className="space-y-1">
+          <h1 className="text-lg font-semibold tracking-tight text-tx-primary">
+            New Connection
+          </h1>
+          <p className="text-xs text-tx-muted">
+            Configure your database credentials to connect and explore.
+          </p>
+        </div>
+
+        {/* Engine Tabs (Classy, borderless segmented switch) */}
+        <div className="flex items-center space-x-1 p-0.5 rounded-lg bg-bg-surface w-fit">
+          {DRIVERS.map((d) => {
+            const isSelected = driver === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => handleDriverChange(d.id)}
+                className={`px-3.5 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-bg-elevated text-tx-primary shadow-xs'
+                    : 'text-tx-muted hover:text-tx-secondary'
+                }`}
+              >
+                {d.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Clean, Frameless Form Sections */}
+        <div className="space-y-6">
+          {/* General Fields */}
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                Connection Name
+              </label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Production Database"
+                  className="flex-1 px-3 py-1.5 text-xs rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+                />
+
+                {/* Inline Color Dots (Clean, non-interfering) */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {COLOR_SWATCHES.map((c) => {
+                    const isSelected = selectedColor === c.value;
+                    return (
+                      <button
+                        key={c.value}
+                        type="button"
+                        onClick={() => setSelectedColor(c.value)}
+                        className={`w-5 h-5 rounded-full ${c.bg} flex items-center justify-center transition-all cursor-pointer ${
+                          isSelected
+                            ? 'opacity-100 shadow-sm'
+                            : 'opacity-40 hover:opacity-80 hover:scale-105'
+                        }`}
+                        title={c.name}
+                      >
+                        {isSelected && <Check className="w-3 h-3 text-white stroke-[2.5]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Environment Toggle */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                Environment
+              </label>
+              <div className="flex items-center space-x-1">
+                {(['development', 'staging', 'production'] as const).map((env) => (
+                  <button
+                    key={env}
+                    type="button"
+                    onClick={() => setEnvironment(env)}
+                    className={`px-3 py-1 text-[11px] font-mono capitalize rounded-md transition-colors cursor-pointer ${
+                      environment === env
+                        ? 'bg-bg-elevated text-tx-primary font-medium'
+                        : 'text-tx-muted hover:text-tx-secondary'
+                    }`}
+                  >
+                    {env}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-border-subtle/50 my-2" />
+
+          {/* Database Parameters */}
+          {driver === 'sqlite' ? (
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                File Path
+              </label>
+              <input
+                type="text"
+                value={filePath}
+                onChange={(e) => setFilePath(e.target.value)}
+                placeholder="path/to/database.sqlite"
+                className="w-full px-3 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+              />
+              <span className="text-[11px] text-tx-muted">
+                File will be created automatically if it does not exist.
               </span>
             </div>
-            <p className="text-xs text-tx-secondary mt-1">
-              High-performance unified database management, schema explorer, and query editor.
-            </p>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                    Host
+                  </label>
+                  <input
+                    type="text"
+                    value={host}
+                    onChange={(e) => setHost(e.target.value)}
+                    placeholder="localhost or host IP"
+                    className="w-full px-3 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                    Port
+                  </label>
+                  <input
+                    type="number"
+                    value={port}
+                    onChange={(e) => setPort(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                    Database
+                  </label>
+                  <input
+                    type="text"
+                    value={database}
+                    onChange={(e) => setDatabase(e.target.value)}
+                    placeholder={driver === 'postgres' ? 'postgres' : 'mysql'}
+                    className="w-full px-3 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={driver === 'postgres' ? 'postgres' : 'root'}
+                    className="w-full px-3 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-medium text-tx-muted uppercase tracking-wider block">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-3 pr-8 py-1.5 text-xs font-mono rounded-md bg-bg-surface border border-border-subtle focus:border-accent-primary text-tx-primary placeholder:text-tx-muted/60 focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-tx-muted hover:text-tx-primary cursor-pointer p-0.5"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* SSL Switch */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs text-tx-secondary">
+                  Enable SSL / TLS encryption
+                </span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ssl}
+                    onChange={(e) => setSsl(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4 bg-bg-elevated peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-accent-primary" />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Minimal Feedback Line */}
+        {testStatus.message && (
+          <div
+            className={`text-xs flex items-center space-x-2 font-mono ${
+              testStatus.success ? 'text-emerald-400' : 'text-rose-400'
+            }`}
+          >
+            <span>{testStatus.success ? '✓' : '✗'}</span>
+            <span>{testStatus.message}</span>
           </div>
+        )}
+
+        {/* Clean Action Buttons */}
+        <div className="flex items-center justify-between pt-4 border-t border-border-subtle/50">
+          <button
+            type="button"
+            onClick={handleTest}
+            disabled={testStatus.loading || isConnecting}
+            className="px-3.5 py-1.5 rounded-md text-xs font-medium text-tx-secondary hover:text-tx-primary hover:bg-bg-surface transition-colors flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+          >
+            {testStatus.loading && <RefreshCw className="w-3 h-3 animate-spin" />}
+            <span>Test Connection</span>
+          </button>
 
           <div className="flex items-center space-x-2.5">
             <button
-              onClick={() => {
-                createTab();
-                onNavigate('query');
-              }}
-              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-accent-primary hover:bg-accent-primary-hover text-accent-text text-xs font-semibold shadow-md shadow-accent-primary/20 transition-all cursor-pointer"
+              type="button"
+              onClick={handleSave}
+              className="px-3.5 py-1.5 rounded-md text-xs font-medium text-tx-secondary hover:text-tx-primary hover:bg-bg-surface transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>New Query</span>
+              Save Profile
             </button>
+
             <button
-              onClick={onOpenNewConnectionModal}
-              className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-bg-surface hover:bg-bg-elevated border border-border-subtle hover:border-border-default text-tx-primary text-xs font-semibold transition-all cursor-pointer"
+              type="button"
+              onClick={handleConnect}
+              disabled={isConnecting}
+              className="px-4 py-1.5 rounded-md bg-accent-primary hover:bg-accent-primary-hover text-accent-text text-xs font-semibold shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Database className="w-3.5 h-3.5 text-accent-primary" />
-              <span>Add Database</span>
+              {isConnecting ? (
+                <>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>Connecting...</span>
+                </>
+              ) : (
+                <span>Connect</span>
+              )}
             </button>
-          </div>
-        </div>
-
-        {/* 4 Stat Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div
-            onClick={() => onNavigate('connections')}
-            className="p-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-accent-primary/40 cursor-pointer transition-all shadow-sm group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
-                <Database className="w-5 h-5 stroke-[1.75]" />
-              </div>
-              <span className="text-[10px] font-mono text-tx-muted group-hover:text-accent-primary transition-colors">
-                Manage →
-              </span>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold tracking-tight text-tx-primary">
-                {connections.length}
-              </div>
-              <div className="text-[11px] text-tx-muted font-medium">Configured Connections</div>
-            </div>
-          </div>
-
-          <div
-            onClick={() => onNavigate('query')}
-            className="p-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-accent-primary/40 cursor-pointer transition-all shadow-sm group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
-                <Terminal className="w-5 h-5 stroke-[1.75]" />
-              </div>
-              <span className="text-[10px] font-mono text-tx-muted group-hover:text-accent-primary transition-colors">
-                Editor →
-              </span>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold tracking-tight text-tx-primary">{tabs.length}</div>
-              <div className="text-[11px] text-tx-muted font-medium">Open Query Tabs</div>
-            </div>
-          </div>
-
-          <div
-            onClick={() => onNavigate('saved-queries')}
-            className="p-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-accent-primary/40 cursor-pointer transition-all shadow-sm group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform">
-                <Bookmark className="w-5 h-5 stroke-[1.75]" />
-              </div>
-              <span className="text-[10px] font-mono text-tx-muted group-hover:text-accent-primary transition-colors">
-                Saved →
-              </span>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold tracking-tight text-tx-primary">
-                {savedQueries.length}
-              </div>
-              <div className="text-[11px] text-tx-muted font-medium">Saved Queries</div>
-            </div>
-          </div>
-
-          <div
-            onClick={() => onNavigate('history')}
-            className="p-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-accent-primary/40 cursor-pointer transition-all shadow-sm group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
-                <Clock className="w-5 h-5 stroke-[1.75]" />
-              </div>
-              <span className="text-[10px] font-mono text-tx-muted group-hover:text-accent-primary transition-colors">
-                History →
-              </span>
-            </div>
-            <div className="mt-3">
-              <div className="text-2xl font-bold tracking-tight text-tx-primary">
-                {history.length}
-              </div>
-              <div className="text-[11px] text-tx-muted font-medium">Executed Queries</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Database Hub Banner */}
-        <div className="p-5 rounded-xl bg-gradient-to-r from-accent-primary/10 via-bg-surface to-bg-surface border border-accent-primary/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-accent-primary/20 border border-accent-primary/40 flex items-center justify-center text-accent-primary">
-              <Database className="w-6 h-6 stroke-[1.75]" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs uppercase font-mono tracking-wider text-tx-muted">
-                  Active Database
-                </span>
-                {activeConn && (
-                  <span className="flex items-center space-x-1 px-1.5 py-0.2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
-                    <span>Live</span>
-                  </span>
-                )}
-              </div>
-              <h2 className="text-lg font-bold text-tx-primary mt-0.5">
-                {activeConn ? activeConn.name : 'No Database Connected'}
-              </h2>
-              <p className="text-xs text-tx-secondary font-mono mt-0.5">
-                {activeConn
-                  ? `${activeConn.driver.toUpperCase()} · ${activeConn.database || activeConn.filePath || 'default'} (${schemaTree ? `${schemaTree.tables.length} tables` : 'schema ready'})`
-                  : 'Select or add a connection in the left side panel to start querying'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => onNavigate('query')}
-              className="px-4 py-2 rounded-lg bg-accent-primary hover:bg-accent-primary-hover text-accent-text text-xs font-semibold shadow-sm transition-all flex items-center space-x-1.5 cursor-pointer"
-            >
-              <span>Open Query Editor</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onNavigate('connections')}
-              className="px-3.5 py-2 rounded-lg bg-bg-surface hover:bg-bg-elevated border border-border-subtle text-tx-secondary hover:text-tx-primary text-xs font-medium transition-all cursor-pointer"
-            >
-              Switch Connection
-            </button>
-          </div>
-        </div>
-
-        {/* Starter Query Templates */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-accent-primary" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-tx-primary">
-                Quick Query Starters
-              </h2>
-            </div>
-            <span className="text-xs text-tx-muted">Click any starter to execute in editor</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {templates.map((tpl) => (
-              <div
-                key={tpl.title}
-                onClick={() => handleLaunchTemplate(tpl.title, tpl.sql)}
-                className="p-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-accent-primary/40 hover:bg-bg-overlay/40 transition-all cursor-pointer group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold text-tx-primary group-hover:text-accent-primary transition-colors">
-                      {tpl.title}
-                    </h3>
-                    <div className="w-6 h-6 rounded-md bg-accent-primary/10 text-accent-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Play className="w-2.5 h-2.5 fill-current" />
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-tx-muted mt-1">{tpl.desc}</p>
-                </div>
-
-                <div className="mt-3 p-2 rounded-lg bg-bg-base border border-border-subtle/60 font-mono text-[10px] text-tx-secondary truncate">
-                  {tpl.sql}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

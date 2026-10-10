@@ -11,6 +11,7 @@ export interface ConnectionConfig {
   password?: string;
   filePath?: string;
   ssl?: boolean;
+  color?: string;
   environment?: 'production' | 'staging' | 'development';
 }
 

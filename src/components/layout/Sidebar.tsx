@@ -1,9 +1,11 @@
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
+import type { ConnectionConfig } from '@/types/database';
 import {
   Bookmark,
   Boxes,
   Calendar,
+  Check,
   ChevronDown,
   ChevronRight,
   Clock,
@@ -11,12 +13,15 @@ import {
   Hash,
   Home,
   KeyRound,
+  Pencil,
   Play,
   Plus,
+  Power,
   RefreshCw,
   Table as TableIcon,
   Terminal,
   Type,
+  X,
 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -46,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     activeConnectionId,
     connect,
     disconnect,
+    updateConnection,
     schemaTree,
     refreshSchema,
     tableColumns,
@@ -72,6 +78,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [databaseExpanded, setDatabaseExpanded] = useState(true);
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
   const [loadingColumnsFor, setLoadingColumnsFor] = useState<Record<string, boolean>>({});
+
+  // Inline rename state for connection profile
+  const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   // Filter out any legacy dummy connections
   const realConnections = useMemo(() => {
@@ -130,6 +140,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleNewQueryClick = () => {
     createTab('', `Query ${tabs.length + 1}`);
     setActiveView('query');
+  };
+
+  const handleStartRename = (conn: ConnectionConfig) => {
+    setEditingConnectionId(conn.id);
+    setEditingName(conn.name);
+  };
+
+  const handleSaveRename = (conn: ConnectionConfig) => {
+    if (editingName.trim()) {
+      updateConnection({ ...conn, name: editingName.trim() });
+    }
+    setEditingConnectionId(null);
   };
 
   const handleQuickSelectTableRows = (tableName: string) => {
@@ -225,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Navigation Options with Logos */}
           <div className="space-y-0.5">
-            {/* Home */}
+            {/* Home (Add Database Setup) */}
             <button
               onClick={() => setActiveView('home')}
               className={`w-full px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs font-medium transition-colors cursor-pointer ${
@@ -337,7 +359,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* ============================================================
-            SECTION 2: Connections Section (Clean, Real Connected DBs)
+            SECTION 2: Connections Section (Unbloated, Clean & Minimal)
            ============================================================ */}
         <div className="border-b border-border-subtle shrink-0">
           {/* Section Header */}
@@ -368,16 +390,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {/* Configured Connections List - Text-based, No Icons, No Glow */}
+          {/* Configured Connections List - Unbloated & Compact */}
           {connectionsExpanded && (
-            <div className="px-2 pb-2 space-y-1 max-h-44 overflow-y-auto custom-scrollbar">
+            <div className="px-2 pb-2 space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar">
               {realConnections.length === 0 ? (
-                <div className="px-3 py-2.5 text-center text-tx-muted text-[11px]">
-                  No connections added yet.
+                <div className="px-3 py-4 text-center space-y-1.5">
+                  <Database className="w-5 h-5 mx-auto text-tx-muted/30" />
+                  <p className="text-[11px] text-tx-muted">No database configured</p>
+                  <button
+                    onClick={onOpenNewConnectionModal}
+                    className="text-[10px] text-accent-primary hover:underline font-medium cursor-pointer"
+                  >
+                    + Add Connection
+                  </button>
                 </div>
               ) : (
                 realConnections.map((conn) => {
                   const isActive = conn.id === activeConnectionId;
+                  const isEditing = editingConnectionId === conn.id;
+
+                  if (isEditing) {
+                    return (
+                      <div
+                        key={conn.id}
+                        className="px-2 py-1 rounded bg-bg-elevated flex items-center gap-1 my-0.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="text"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveRename(conn);
+                            if (e.key === 'Escape') setEditingConnectionId(null);
+                          }}
+                          autoFocus
+                          className="flex-1 bg-bg-base border border-accent-primary rounded px-1.5 py-0.5 text-xs text-tx-primary font-sans focus:outline-none"
+                        />
+                        <button
+                          onClick={() => handleSaveRename(conn)}
+                          className="p-1 text-accent-primary hover:text-accent-primary-hover cursor-pointer"
+                          title="Save (Enter)"
+                        >
+                          <Check className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={() => setEditingConnectionId(null)}
+                          className="p-1 text-tx-muted hover:text-tx-primary cursor-pointer"
+                          title="Cancel (Esc)"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  }
 
                   return (
                     <div
@@ -387,47 +453,58 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           connect(conn);
                         }
                       }}
-                      className={`px-2.5 py-1.5 rounded-md flex items-center justify-between cursor-pointer transition-all ${
+                      className={`group px-2 py-1.5 rounded-md flex items-center justify-between cursor-pointer transition-colors ${
                         isActive
-                          ? 'bg-bg-elevated border-l-2 border-accent-primary text-tx-primary'
+                          ? 'bg-bg-elevated text-tx-primary'
                           : 'text-tx-secondary hover:text-tx-primary hover:bg-bg-overlay/50'
                       }`}
                     >
-                      {/* Connection Details */}
-                      <div className="min-w-0 flex-1 pr-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium truncate">{conn.name}</span>
-                          <span className="text-[9px] uppercase font-mono text-tx-muted/70 tracking-wider">
-                            {conn.driver}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-tx-muted font-mono truncate">
-                          {conn.driver === 'sqlite'
-                            ? conn.filePath || 'sqlite.db'
-                            : `${conn.host || 'localhost'}:${conn.port || 5432}`}
+                      {/* Left: Thin Vertical Color Capsule + Connection Details */}
+                      <div className="flex items-center space-x-2.5 min-w-0 flex-1 truncate pr-2">
+                        <span
+                          style={{
+                            backgroundColor:
+                              conn.color || (isActive ? 'var(--color-accent-primary)' : 'rgba(150, 150, 150, 0.4)'),
+                          }}
+                          className="w-[3px] h-7 rounded-full shrink-0"
+                          title={conn.name}
+                        />
+                        <div className="min-w-0 flex-1 truncate">
+                          <div className="text-xs font-medium truncate leading-tight">
+                            {conn.name}
+                          </div>
+                          <div className="text-[10px] text-tx-muted font-mono truncate leading-tight mt-0.5">
+                            {conn.driver === 'sqlite'
+                              ? conn.filePath || 'sqlite.db'
+                              : `${conn.host || 'localhost'}:${conn.port || 5432}`}
+                          </div>
                         </div>
                       </div>
 
-                      {/* State / Actions */}
-                      <div className="shrink-0 flex items-center space-x-1.5 text-[10px] font-mono">
-                        {isActive ? (
-                          <div className="flex items-center space-x-1.5">
-                            <span className="text-[9px] text-accent-primary font-medium">
-                              Active
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                disconnect();
-                              }}
-                              className="text-[9px] text-tx-muted hover:text-rose-400 transition-colors px-1 py-0.5 rounded hover:bg-bg-overlay cursor-pointer"
-                              title="Disconnect"
-                            >
-                              Disconnect
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[9px] text-tx-muted/40">Connect</span>
+                      {/* Right: Actions */}
+                      <div className="shrink-0 flex items-center space-x-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartRename(conn);
+                          }}
+                          className="p-1 text-tx-muted hover:text-tx-primary rounded hover:bg-bg-overlay cursor-pointer"
+                          title="Rename Connection"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+
+                        {isActive && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              disconnect();
+                            }}
+                            className="p-1 text-tx-muted hover:text-rose-400 rounded hover:bg-bg-overlay cursor-pointer"
+                            title="Disconnect Database"
+                          >
+                            <Power className="w-3 h-3" />
+                          </button>
                         )}
                       </div>
                     </div>
