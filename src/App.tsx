@@ -1,22 +1,25 @@
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { ConnectionModal } from '@/components/connection/ConnectionModal';
+import { ConnectionsDashboard } from '@/components/connection/ConnectionsDashboard';
 import { SqlEditor } from '@/components/editor/SqlEditor';
-import { ActivityBar } from '@/components/layout/ActivityBar';
-import { StatusBar } from '@/components/layout/StatusBar';
+import { Sidebar, type NavView } from '@/components/layout/Sidebar';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ResultsPanel } from '@/components/results/ResultsPanel';
-import { SchemaTree } from '@/components/schema-tree/SchemaTree';
 import { ThemeManager } from '@/components/theme/ThemeManager';
+import { ExtensionsView } from '@/components/views/ExtensionsView';
+import { HistoryView } from '@/components/views/HistoryView';
+import { HomeView } from '@/components/views/HomeView';
+import { SavedQueriesView } from '@/components/views/SavedQueriesView';
 import { applyTheme } from '@/services/themeEngine';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
 import { useThemeStore } from '@/stores/themeStore';
-import { Clock, Play, Plus, Terminal, Trash2, X } from 'lucide-react';
+import { Clock, Plus, Terminal, Trash2, X } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export const App: React.FC = () => {
-  const [activeView, setActiveView] = useState<'explorer' | 'query' | 'theme'>('query');
+  const [activeView, setActiveView] = useState<NavView>('query');
   const [isConnectionModalOpen, setIsConnectionModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
@@ -28,7 +31,6 @@ export const App: React.FC = () => {
   const {
     tabs,
     activeTabId,
-    selectedSql,
     setSelectedSql,
     setActiveTab,
     createTab,
@@ -111,8 +113,6 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeConnectionId, activeTabId, runActiveQuery, createTab, closeTab]);
 
-  const hasSelection = Boolean(selectedSql && selectedSql.trim().length > 0);
-
   return (
     <div className="flex-1 flex flex-col h-full w-full bg-bg-base overflow-hidden select-none font-sans">
       {/* Top TitleBar */}
@@ -124,20 +124,46 @@ export const App: React.FC = () => {
 
       {/* Main Workspace */}
       <div className="flex-1 flex flex-row overflow-hidden">
-        {/* Left Activity Rail */}
-        <ActivityBar
+        {/* Rebuilt 3-Section Mouse-Resizable Side Panel */}
+        <Sidebar
           activeView={activeView}
           setActiveView={setActiveView}
-          onOpenNewConnection={() => setIsConnectionModalOpen(true)}
+          onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
         />
 
-        {/* Left Schema Explorer */}
-        {activeView === 'explorer' && <SchemaTree />}
+        {/* Home Dashboard View */}
+        {activeView === 'home' && (
+          <HomeView
+            onNavigate={(v) => setActiveView(v)}
+            onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
+          />
+        )}
+
+        {/* Connections Management Dashboard View */}
+        {activeView === 'connections' && (
+          <ConnectionsDashboard
+            onOpenNewConnectionModal={() => setIsConnectionModalOpen(true)}
+            onNavigateToEditor={() => setActiveView('query')}
+          />
+        )}
+
+        {/* Query History View */}
+        {activeView === 'history' && (
+          <HistoryView onNavigateToEditor={() => setActiveView('query')} />
+        )}
+
+        {/* Saved Queries View */}
+        {activeView === 'saved-queries' && (
+          <SavedQueriesView onNavigateToEditor={() => setActiveView('query')} />
+        )}
+
+        {/* Extensions View */}
+        {activeView === 'extensions' && <ExtensionsView />}
 
         {/* Theme Manager View */}
         {activeView === 'theme' && <ThemeManager />}
 
-        {/* SQL Query Workspace */}
+        {/* SQL Query Workspace (Default) */}
         {activeView === 'query' && (
           <div className="flex-1 flex flex-col overflow-hidden bg-bg-base">
             {/* Tab Bar */}
@@ -178,7 +204,7 @@ export const App: React.FC = () => {
 
                 <button
                   onClick={() => createTab()}
-                  className="w-6 h-6 flex items-center justify-center text-tx-muted hover:text-tx-primary hover:bg-bg-overlay rounded transition-all duration-150 ml-0.5"
+                  className="w-6 h-6 flex items-center justify-center text-tx-muted hover:text-tx-primary hover:bg-bg-overlay rounded transition-all duration-150 ml-0.5 cursor-pointer"
                   title="New Tab (Ctrl+T)"
                 >
                   <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -211,26 +237,9 @@ export const App: React.FC = () => {
                     <span className="font-mono text-tx-muted uppercase tracking-wider text-[9px]">
                       query
                     </span>
-                    {hasSelection && (
-                      <span className="text-[9px] px-1.5 py-px rounded-sm bg-accent-primary/15 text-accent-primary border border-accent-primary/20 font-medium">
-                        selection
-                      </span>
-                    )}
                   </div>
 
                   <div className="flex items-center gap-1">
-                    {hasSelection && (
-                      <button
-                        onClick={() => {
-                          if (activeConnectionId) runActiveQuery(activeConnectionId);
-                        }}
-                        className="flex items-center gap-1 px-2 py-0.5 rounded bg-accent-primary text-accent-text hover:bg-accent-primary-hover text-[9px] font-semibold transition-colors shadow-sm"
-                      >
-                        <Play className="w-2 h-2 fill-current" strokeWidth={0} />
-                        <span>Run</span>
-                      </button>
-                    )}
-
                     <button
                       onClick={() => {
                         if (activeTab) {
@@ -238,7 +247,7 @@ export const App: React.FC = () => {
                           setSelectedSql('');
                         }
                       }}
-                      className="w-5 h-5 flex items-center justify-center hover:text-tx-primary text-tx-muted rounded transition-colors"
+                      className="w-5 h-5 flex items-center justify-center hover:text-tx-primary text-tx-muted rounded transition-colors cursor-pointer"
                       title="Clear Buffer"
                     >
                       <Trash2 className="w-3 h-3" strokeWidth={1.5} />
@@ -282,9 +291,6 @@ export const App: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Bottom Status Bar */}
-      <StatusBar />
 
       {/* Modals & Dialogs */}
       <ConnectionModal

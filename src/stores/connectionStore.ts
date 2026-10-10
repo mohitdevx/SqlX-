@@ -1,46 +1,30 @@
-import { connectDatabase, disconnectDatabase, getSchemaTree } from '@/services/tauriBridge';
-import type { ConnectionConfig, DatabaseTree } from '@/types/database';
+import {
+  connectDatabase,
+  disconnectDatabase,
+  getSchemaTree,
+  getTableColumns,
+} from '@/services/tauriBridge';
+import type { ColumnSchema, ConnectionConfig, DatabaseTree } from '@/types/database';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-const defaultPresetConnections: ConnectionConfig[] = [
-  {
-    id: 'conn-local-postgres',
-    name: 'Local PostgreSQL',
-    driver: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    database: 'postgres',
-    username: 'postgres',
-    password: '',
-    ssl: false,
-    environment: 'development',
-  },
-  {
-    id: 'conn-local-mysql',
-    name: 'Local MySQL',
-    driver: 'mysql',
-    host: 'localhost',
-    port: 3306,
-    database: 'mysql',
-    username: 'root',
-    password: '',
-    ssl: false,
-    environment: 'development',
-  },
-  {
-    id: 'conn-local-sqlite',
-    name: 'Local SQLite',
-    driver: 'sqlite',
-    filePath: 'sqlx_dev.sqlite',
-    environment: 'development',
-  },
-];
+// Clean legacy localStorage keys that may contain dummy default connections
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const legacy = window.localStorage.getItem('sqlx-saved-connections-v1');
+    if (legacy && (legacy.includes('conn-local-postgres') || legacy.includes('Local PostgreSQL'))) {
+      window.localStorage.removeItem('sqlx-saved-connections-v1');
+    }
+  }
+} catch {
+  // ignore storage errors
+}
 
 interface ConnectionState {
   connections: ConnectionConfig[];
   activeConnectionId: string | null;
   schemaTree: DatabaseTree | null;
+  tableColumns: Record<string, ColumnSchema[]>;
   isLoading: boolean;
   error: string | null;
 
@@ -50,14 +34,16 @@ interface ConnectionState {
   connect: (config: ConnectionConfig) => Promise<boolean>;
   disconnect: () => Promise<void>;
   refreshSchema: () => Promise<void>;
+  fetchTableColumns: (tableName: string) => Promise<ColumnSchema[]>;
 }
 
 export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set, get) => ({
-      connections: defaultPresetConnections,
-      activeConnectionId: 'conn-local-postgres',
+      connections: [],
+      activeConnectionId: null,
       schemaTree: null,
+      tableColumns: {},
       isLoading: false,
       error: null,
 
@@ -83,6 +69,8 @@ export const useConnectionStore = create<ConnectionState>()(
         set((state) => ({
           connections: state.connections.filter((c) => c.id !== id),
           activeConnectionId: state.activeConnectionId === id ? null : state.activeConnectionId,
+          schemaTree: state.activeConnectionId === id ? null : state.schemaTree,
+          tableColumns: state.activeConnectionId === id ? {} : state.tableColumns,
         }));
       },
 
@@ -93,7 +81,7 @@ export const useConnectionStore = create<ConnectionState>()(
           get().addConnection(config);
 
           const connId = await connectDatabase(config);
-          set({ activeConnectionId: connId, error: null });
+          set({ activeConnectionId: connId, error: null, tableColumns: {} });
           try {
             const tree = await getSchemaTree(connId);
             set({ schemaTree: tree, isLoading: false });
@@ -116,24 +104,47 @@ export const useConnectionStore = create<ConnectionState>()(
             // ignore disconnect error
           }
         }
-        set({ activeConnectionId: null, schemaTree: null });
+        set({ activeConnectionId: null, schemaTree: null, tableColumns: {} });
       },
 
       refreshSchema: async () => {
         const { activeConnectionId } = get();
         if (!activeConnectionId) return;
+        set({ isLoading: true });
         try {
           const tree = await getSchemaTree(activeConnectionId);
-          set({ schemaTree: tree });
+          set({ schemaTree: tree, isLoading: false });
         } catch (err: unknown) {
-          set({ error: String(err) });
+          set({ error: String(err), isLoading: false });
+        }
+      },
+
+      fetchTableColumns: async (tableName: string) => {
+        const { activeConnectionId, tableColumns } = get();
+        if (!activeConnectionId) return [];
+        if (tableColumns[tableName]) return tableColumns[tableName];
+
+        try {
+          const cols = await getTableColumns(activeConnectionId, tableName);
+          set((state) => ({
+            tableColumns: {
+              ...state.tableColumns,
+              [tableName]: cols,
+            },
+          }));
+          return cols;
+        } catch (err: unknown) {
+          console.error(`Failed to load columns for table ${tableName}:`, err);
+          return [];
         }
       },
     }),
     {
-      name: 'sqlx-saved-connections-v1',
+      name: 'sqlx-connections-store-v2',
       partialize: (state) => ({
-        connections: state.connections,
+        connections: state.connections.filter(
+          (c) => !c.id.startsWith('conn-local-') && c.name !== 'Local PostgreSQL' && c.name !== 'Local MySQL' && c.name !== 'Local SQLite'
+        ),
         activeConnectionId: state.activeConnectionId,
       }),
     }

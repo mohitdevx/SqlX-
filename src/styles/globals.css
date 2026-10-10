@@ -66,10 +66,10 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Custom Minimalist Scrollbars */
+/* Custom Minimalist Professional Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -77,12 +77,30 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-default);
-  border-radius: 3px;
+  background: rgba(150, 150, 150, 0.18);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-strong);
+  background: rgba(150, 150, 150, 0.35);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3.5px;
+  height: 3.5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.15);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.3);
 }
 
 /* Resizable Divider Handle */
