@@ -198,7 +198,7 @@ git push origin v0.1.0
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for details.
+Distributed under the MIT License.
 
 ---
 
