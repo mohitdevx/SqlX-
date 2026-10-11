@@ -106,7 +106,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
         {isCreating && (
           <form
             onSubmit={handleCreateNew}
-            className="p-4 rounded-xl bg-bg-surface space-y-3.5 shadow-sm"
+            className="p-4 rounded-xl bg-white/[0.04] space-y-3.5 shadow-sm"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-medium text-tx-primary">Create Saved Query</h2>
@@ -128,7 +128,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Monthly Active Users"
-                  className="w-full px-3 py-1.5 rounded-lg bg-bg-base text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none transition-colors font-sans"
+                  className="w-full px-3 py-1.5 rounded-lg bg-white/[0.04] focus:bg-white/[0.07] text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none transition-colors font-sans"
                   autoFocus
                 />
               </div>
@@ -142,7 +142,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   placeholder="analytics, reports, users"
-                  className="w-full px-3 py-1.5 rounded-lg bg-bg-base text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none transition-colors font-sans"
+                  className="w-full px-3 py-1.5 rounded-lg bg-white/[0.04] focus:bg-white/[0.07] text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none transition-colors font-sans"
                 />
               </div>
             </div>
@@ -155,7 +155,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
                 value={newSql}
                 onChange={(e) => setNewSql(e.target.value)}
                 placeholder="SELECT * FROM users WHERE status = 'active';"
-                className="w-full px-3 py-2 rounded-lg bg-bg-base text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none font-mono transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-white/[0.04] focus:bg-white/[0.07] text-xs text-tx-primary placeholder-tx-muted/60 focus:outline-none font-mono transition-colors"
               />
             </div>
 
@@ -163,7 +163,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
               <button
                 type="button"
                 onClick={() => setIsCreating(false)}
-                className="px-3 py-1.5 rounded-lg text-xs text-tx-secondary hover:text-tx-primary hover:bg-bg-elevated transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs text-tx-secondary hover:text-tx-primary hover:bg-white/[0.08] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -249,7 +249,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
                   className="group rounded-xl bg-white/[0.04] hover:bg-white/[0.07] transition-all overflow-hidden"
                 >
                   {/* Item Header */}
-                  <div className="px-4 py-2.5 flex items-center justify-between bg-white/[0.02]">
+                  <div className="px-4 py-2.5 flex items-center justify-between border-b border-border-subtle/20">
                     <div className="flex items-center space-x-2.5 min-w-0">
                       <span className="text-xs font-medium text-tx-primary truncate">
                         {query.title}
@@ -309,7 +309,7 @@ export const SavedQueriesView: React.FC<SavedQueriesViewProps> = ({ onNavigateTo
                   </div>
 
                   {/* Syntax Highlighted SQL Content */}
-                  <div className="p-3.5 bg-white/[0.02]">
+                  <div className="p-3.5">
                     <SqlCodeBlock code={query.sql} maxHeight="180px" />
                   </div>
                 </div>

@@ -130,7 +130,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onNavigateToEditor }) 
                   className="group rounded-xl bg-white/[0.04] hover:bg-white/[0.07] transition-all overflow-hidden"
                 >
                   {/* Meta Bar */}
-                  <div className="px-4 py-2 flex items-center justify-between text-[11px] bg-white/[0.02]">
+                  <div className="px-4 py-2.5 flex items-center justify-between text-[11px] border-b border-border-subtle/20">
                     <div className="flex items-center space-x-2.5">
                       {item.success ? (
                         <span className="text-emerald-400 font-medium text-xs">Success</span>
@@ -191,7 +191,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ onNavigateToEditor }) 
                   </div>
 
                   {/* Syntax Highlighted SQL Code Block */}
-                  <div className="p-3.5 bg-white/[0.02]">
+                  <div className="p-3.5">
                     <SqlCodeBlock code={item.sql} maxHeight="180px" />
                   </div>
                 </div>

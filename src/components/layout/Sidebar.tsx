@@ -583,15 +583,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </span>
                   </div>
 
-                  {/* Nested Tables Tree under DB */}
-                  <div className="ml-1 space-y-0.5 mt-0.5">
+                  {/* Nested Tables Tree under DB (Level 2 with vertical guide line) */}
+                  <div className="ml-3.5 pl-2 border-l border-white/10 space-y-0.5 mt-0.5">
                     {tablesList.length === 0 ? (
                       <div className="py-3 text-center text-tx-muted text-[11px] italic">
                         {schemaTree ? 'No tables found' : 'Loading schema objects...'}
                       </div>
                     ) : (
-                      tablesList.map((table, tIdx) => {
-                        const isLastTable = tIdx === tablesList.length - 1;
+                      tablesList.map((table) => {
                         const isExpanded = Boolean(expandedTables[table.name]);
                         const cols = tableColumns[table.name] || [];
                         const isLoadingCols = Boolean(loadingColumnsFor[table.name]);
@@ -603,10 +602,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               onClick={() => toggleTableExpansion(table.name)}
                               className="px-1.5 py-1 rounded-md hover:bg-bg-overlay/60 text-tx-secondary hover:text-tx-primary flex items-center justify-between text-xs font-mono cursor-pointer transition-colors group"
                             >
-                              <div className="flex items-center space-x-1 truncate flex-1 min-w-0">
-                                <span className="text-tx-muted/40 font-mono text-[11px] select-none shrink-0 w-4 text-center">
-                                  {isLastTable ? '└─' : '├─'}
-                                </span>
+                              <div className="flex items-center space-x-1.5 truncate flex-1 min-w-0">
                                 <span className="text-tx-muted group-hover:text-tx-primary p-0.5">
                                   {isExpanded ? (
                                     <ChevronDown className="w-3 h-3" />
@@ -640,20 +636,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               </div>
                             </div>
 
-                            {/* Expanded Table Columns & Rows */}
+                            {/* Expanded Table Columns & Rows (Level 3 with vertical guide line) */}
                             {isExpanded && (
-                              <div
-                                className={`ml-3 pl-2 py-0.5 space-y-0.5 font-mono text-[10px] ${
-                                  !isLastTable
-                                    ? 'border-l border-white/10'
-                                    : 'border-l border-transparent'
-                                }`}
-                              >
+                              <div className="ml-3 pl-2.5 border-l border-white/10 py-0.5 space-y-0.5 font-mono text-[10px]">
                                 {/* Quick actions row for table rows */}
-                                <div className="flex items-center space-x-1.5 pb-1 pt-0.5">
-                                  <span className="text-tx-muted/40 font-mono text-[10px] select-none shrink-0">
-                                    ├──
-                                  </span>
+                                <div className="flex items-center space-x-1.5 pb-1 pt-0.5 px-1">
                                   <button
                                     onClick={() => handleQuickSelectTableRows(table.name)}
                                     className="px-1.5 py-0.5 rounded bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary text-[9px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
@@ -671,48 +658,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                                 {/* Columns List */}
                                 {isLoadingCols ? (
-                                  <div className="text-[10px] text-tx-muted py-0.5 italic flex items-center space-x-1">
+                                  <div className="text-[10px] text-tx-muted py-0.5 italic flex items-center space-x-1 px-1">
                                     <RefreshCw className="w-2.5 h-2.5 animate-spin" />
                                     <span>Loading columns...</span>
                                   </div>
                                 ) : cols.length === 0 ? (
-                                  <div className="text-[10px] text-tx-muted py-0.5 italic">
+                                  <div className="text-[10px] text-tx-muted py-0.5 italic px-1">
                                     No columns found
                                   </div>
                                 ) : (
                                   <div className="space-y-0.5">
-                                    {cols.map((col, cIdx) => {
-                                      const isLastCol = cIdx === cols.length - 1;
-                                      return (
-                                        <div
-                                          key={col.name}
-                                          onClick={() => handleInsertColumn(table.name, col.name)}
-                                          className="flex items-center justify-between text-tx-muted hover:text-tx-primary py-0.5 px-1 rounded hover:bg-bg-overlay/50 cursor-pointer group/col transition-colors"
-                                          title={`Click to query ${col.name} (${col.dataType})`}
-                                        >
-                                          <div className="flex items-center space-x-1.5 truncate">
-                                            <span className="text-tx-muted/40 font-mono text-[10px] select-none shrink-0">
-                                              {isLastCol ? '└──' : '├──'}
-                                            </span>
-                                            {getColumnIcon(col.dataType, col.isPrimaryKey)}
-                                            <span className="truncate group-hover/col:text-accent-primary">
-                                              {col.name}
-                                            </span>
-                                          </div>
-
-                                          <div className="flex items-center space-x-1 shrink-0 ml-1">
-                                            <span className="text-[9px] text-tx-muted/60">
-                                              {col.dataType}
-                                            </span>
-                                            {col.isPrimaryKey && (
-                                              <span className="text-[8px] font-bold text-amber-400 px-0.5 rounded bg-amber-400/10">
-                                                PK
-                                              </span>
-                                            )}
-                                          </div>
+                                    {cols.map((col) => (
+                                      <div
+                                        key={col.name}
+                                        onClick={() => handleInsertColumn(table.name, col.name)}
+                                        className="flex items-center justify-between text-tx-muted hover:text-tx-primary py-0.5 px-1 rounded hover:bg-bg-overlay/50 cursor-pointer group/col transition-colors"
+                                        title={`Click to query ${col.name} (${col.dataType})`}
+                                      >
+                                        <div className="flex items-center space-x-1.5 truncate">
+                                          {getColumnIcon(col.dataType, col.isPrimaryKey)}
+                                          <span className="truncate group-hover/col:text-accent-primary">
+                                            {col.name}
+                                          </span>
                                         </div>
-                                      );
-                                    })}
+
+                                        <div className="flex items-center space-x-1 shrink-0 ml-1">
+                                          <span className="text-[9px] text-tx-muted/60">
+                                            {col.dataType}
+                                          </span>
+                                          {col.isPrimaryKey && (
+                                            <span className="text-[8px] font-bold text-amber-400 px-0.5 rounded bg-amber-400/10">
+                                              PK
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>

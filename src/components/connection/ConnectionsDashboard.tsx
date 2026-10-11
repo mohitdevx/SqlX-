@@ -205,7 +205,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
               value={uriInput}
               onChange={(e) => setUriInput(e.target.value)}
               placeholder="postgres://user:password@localhost:5432/dbname"
-              className="flex-1 bg-bg-base rounded-lg px-3 py-1.5 text-xs text-tx-primary placeholder-tx-muted/60 font-mono focus:outline-none transition-colors"
+              className="flex-1 bg-white/[0.04] focus:bg-white/[0.07] rounded-lg px-3 py-1.5 text-xs text-tx-primary placeholder-tx-muted/60 font-mono focus:outline-none transition-colors"
               autoFocus
             />
             <button
@@ -383,7 +383,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
                     >
                       <button
                         onClick={(e) => handleStartRename(conn, e)}
-                        className="p-1.5 text-tx-muted hover:text-tx-primary rounded-lg hover:bg-bg-elevated transition-colors cursor-pointer"
+                        className="p-1.5 text-tx-muted hover:text-tx-primary rounded-lg hover:bg-white/[0.08] transition-colors cursor-pointer"
                         title="Rename"
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -408,7 +408,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
                             e.stopPropagation();
                             disconnect();
                           }}
-                          className="px-3 py-1 rounded-lg bg-bg-elevated hover:bg-rose-500/15 text-tx-secondary hover:text-rose-400 text-xs font-medium transition-colors flex items-center space-x-1.5 cursor-pointer"
+                          className="px-3 py-1 rounded-lg bg-white/[0.06] hover:bg-rose-500/15 text-tx-secondary hover:text-rose-400 text-xs font-medium transition-colors flex items-center space-x-1.5 cursor-pointer"
                           title="Disconnect"
                         >
                           <Power className="w-3 h-3" />
@@ -421,7 +421,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
                             handleConnect(conn);
                           }}
                           disabled={isConnecting}
-                          className="px-3.5 py-1 rounded-lg bg-bg-elevated hover:bg-accent-primary hover:text-accent-text text-tx-secondary text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
+                          className="px-3.5 py-1 rounded-lg bg-white/[0.06] hover:bg-accent-primary hover:text-accent-text text-tx-secondary text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
                         >
                           {isConnecting ? 'Connecting...' : 'Connect'}
                         </button>
@@ -431,7 +431,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
 
                   {/* Expanded Metadata & Details Panel */}
                   {isExpanded && (
-                    <div className="px-4 pb-4 pt-1 bg-white/[0.02] space-y-3.5">
+                    <div className="px-4 pb-4 pt-2 border-t border-border-subtle/20 space-y-3.5">
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-2">
                         {/* Driver */}
                         <div className="space-y-0.5">
@@ -531,7 +531,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
                       </div>
 
                       {/* Connection URI Row */}
-                      <div className="p-2.5 rounded-lg bg-white/[0.03] flex items-center justify-between gap-2 text-xs">
+                      <div className="p-2.5 rounded-lg bg-white/[0.04] flex items-center justify-between gap-2 text-xs">
                         <div className="flex items-center space-x-2 min-w-0 flex-1">
                           <span className="text-[10px] font-mono text-tx-muted uppercase shrink-0">
                             URI:

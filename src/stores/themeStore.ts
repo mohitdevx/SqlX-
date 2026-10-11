@@ -59,14 +59,18 @@ const defaultDarkTheme: SqlXTheme = {
 
 interface ThemeState {
   currentTheme: SqlXTheme;
+  customThemes: SqlXTheme[];
   setTheme: (theme: SqlXTheme) => void;
   loadCustomThemeJson: (jsonString: string) => boolean;
+  addCustomTheme: (theme: SqlXTheme) => boolean;
+  removeCustomTheme: (name: string) => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
       currentTheme: defaultDarkTheme,
+      customThemes: [],
       setTheme: (theme) => {
         applyTheme(theme);
         set({ currentTheme: theme });
@@ -76,13 +80,30 @@ export const useThemeStore = create<ThemeState>()(
           const parsed = JSON.parse(jsonString) as SqlXTheme;
           if (parsed?.colors && parsed?.name) {
             applyTheme(parsed);
-            set({ currentTheme: parsed });
+            set((state) => ({
+              currentTheme: parsed,
+              customThemes: [...state.customThemes.filter((t) => t.name !== parsed.name), parsed],
+            }));
             return true;
           }
           return false;
         } catch {
           return false;
         }
+      },
+      addCustomTheme: (theme) => {
+        if (!theme?.name || !theme?.colors) return false;
+        applyTheme(theme);
+        set((state) => ({
+          currentTheme: theme,
+          customThemes: [...state.customThemes.filter((t) => t.name !== theme.name), theme],
+        }));
+        return true;
+      },
+      removeCustomTheme: (name) => {
+        set((state) => ({
+          customThemes: state.customThemes.filter((t) => t.name !== name),
+        }));
       },
     }),
     {
