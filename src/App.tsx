@@ -13,7 +13,7 @@ import { applyTheme } from '@/services/themeEngine';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
 import { useThemeStore } from '@/stores/themeStore';
-import { Clock, Plus, Terminal, Trash2, X } from 'lucide-react';
+import { Clock, Pencil, Plus, Terminal, X } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -34,11 +34,28 @@ export const App: React.FC = () => {
     createTab,
     closeTab,
     updateSql,
+    renameTab,
     runActiveQuery,
   } = useQueryStore();
   const { activeConnectionId } = useConnectionStore();
   const { currentTheme } = useThemeStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
+
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+
+  const handleStartRenameTab = (tabId: string, currentTitle: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingTabId(tabId);
+    setEditingTitle(currentTitle);
+  };
+
+  const handleSaveRenameTab = (tabId: string) => {
+    if (editingTitle.trim()) {
+      renameTab(tabId, editingTitle.trim());
+    }
+    setEditingTabId(null);
+  };
 
   useEffect(() => {
     applyTheme(currentTheme);
@@ -164,24 +181,58 @@ export const App: React.FC = () => {
               <div className="flex items-center gap-0.5 h-full">
                 {tabs.map((tab) => {
                   const isActive = tab.id === activeTabId;
+                  const isEditing = editingTabId === tab.id;
                   return (
                     <div
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative h-full px-3 flex items-center gap-1.5 text-[11px] cursor-pointer transition-all duration-150 ${
+                      className={`group relative h-full px-2.5 flex items-center gap-1.5 text-[11px] cursor-pointer transition-all duration-150 ${
                         isActive
                           ? 'text-tx-primary font-medium'
                           : 'text-tx-muted hover:text-tx-secondary'
                       }`}
                     >
-                      <Terminal className="w-3 h-3 opacity-60" strokeWidth={1.5} />
-                      <span className="truncate max-w-[110px]">{tab.title}</span>
+                      <Terminal className="w-3 h-3 opacity-60 shrink-0" strokeWidth={1.5} />
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveRenameTab(tab.id);
+                            if (e.key === 'Escape') setEditingTabId(null);
+                          }}
+                          onBlur={() => handleSaveRenameTab(tab.id)}
+                          autoFocus
+                          onClick={(e) => e.stopPropagation()}
+                          className="bg-bg-base border border-accent-primary rounded px-1.5 py-0.2 text-[11px] text-tx-primary font-sans focus:outline-none w-20 max-w-[120px]"
+                        />
+                      ) : (
+                        <span
+                          onDoubleClick={(e) => handleStartRenameTab(tab.id, tab.title, e)}
+                          title="Double-click to rename"
+                          className="truncate max-w-[110px]"
+                        >
+                          {tab.title}
+                        </span>
+                      )}
+
+                      {!isEditing && (
+                        <button
+                          onClick={(e) => handleStartRenameTab(tab.id, tab.title, e)}
+                          className="opacity-0 group-hover:opacity-60 hover:!opacity-100 p-0.5 rounded text-tx-muted hover:text-tx-primary transition-opacity"
+                          title="Rename Tab"
+                        >
+                          <Pencil className="w-2.5 h-2.5" />
+                        </button>
+                      )}
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           closeTab(tab.id);
                         }}
-                        className="ml-1 opacity-0 group-hover:opacity-100 hover:opacity-100 hover:text-tx-primary p-0.5 rounded transition-all"
+                        className="opacity-0 group-hover:opacity-100 hover:opacity-100 hover:text-tx-primary p-0.5 rounded transition-all"
                         style={{ opacity: isActive ? 0.6 : undefined }}
                         title="Close Tab (Ctrl+W)"
                       >
@@ -224,30 +275,6 @@ export const App: React.FC = () => {
                 style={{ height: `${editorHeightPct}%` }}
                 className="flex flex-col overflow-hidden bg-editor-bg"
               >
-                {/* Editor Action Toolbar */}
-                <div className="h-7 bg-bg-surface/80 border-b border-border-subtle flex items-center justify-between px-3 text-[10px] select-none transition-colors duration-150">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-tx-muted uppercase tracking-wider text-[9px]">
-                      query
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        if (activeTab) {
-                          updateSql(activeTab.id, '');
-                          setSelectedSql('');
-                        }
-                      }}
-                      className="w-5 h-5 flex items-center justify-center hover:text-tx-primary text-tx-muted rounded transition-colors cursor-pointer"
-                      title="Clear Buffer"
-                    >
-                      <Trash2 className="w-3 h-3" strokeWidth={1.5} />
-                    </button>
-                  </div>
-                </div>
-
                 {/* CodeMirror SQL Editor */}
                 <div className="flex-1 overflow-hidden">
                   {activeTab && (

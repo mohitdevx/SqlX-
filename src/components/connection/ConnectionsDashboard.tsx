@@ -198,7 +198,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
         {showUriInput && (
           <form
             onSubmit={handleConnectUri}
-            className="p-3 rounded-xl bg-bg-surface flex items-center gap-2"
+            className="p-3 rounded-xl bg-white/[0.04] flex items-center gap-2"
           >
             <input
               type="text"
@@ -284,7 +284,7 @@ export const ConnectionsDashboard: React.FC<ConnectionsDashboardProps> = ({
                 <div
                   key={conn.id}
                   className={`rounded-xl transition-all overflow-hidden ${
-                    isActive ? 'bg-white/[0.07] shadow-xs' : 'bg-white/[0.03] hover:bg-white/[0.06]'
+                    isActive ? 'bg-white/[0.07] shadow-xs' : 'bg-white/[0.04] hover:bg-white/[0.07]'
                   }`}
                 >
                   {/* Connection Header / Main Toggle Row */}

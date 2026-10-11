@@ -59,8 +59,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isLoading: isConnecting,
   } = useConnectionStore();
 
-  const { createTab, runActiveQuery, updateSql, tabs, history, savedQueries, activeTabId } =
-    useQueryStore();
+  const {
+    createTab,
+    runActiveQuery,
+    updateSql,
+    renameTab,
+    tabs,
+    history,
+    savedQueries,
+    activeTabId,
+  } = useQueryStore();
 
   // Mouse-resizable sidebar width (min 180px, max 500px)
   const [sidebarWidth, setSidebarWidth] = useState(260);
@@ -149,7 +157,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleQuickSelectTableRows = (tableName: string) => {
     const sql = `SELECT * FROM ${tableName} LIMIT 100;`;
-    createTab(sql, tableName);
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    if (activeTab) {
+      updateSql(activeTab.id, sql);
+      renameTab(activeTab.id, tableName);
+    } else {
+      createTab(sql, tableName);
+    }
     setActiveView('query');
     if (activeConnectionId) {
       setTimeout(() => {
@@ -160,7 +174,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleQuickCountTableRows = (tableName: string) => {
     const sql = `SELECT COUNT(*) AS total_rows FROM ${tableName};`;
-    createTab(sql, `Count ${tableName}`);
+    const activeTab = tabs.find((t) => t.id === activeTabId);
+    if (activeTab) {
+      updateSql(activeTab.id, sql);
+      renameTab(activeTab.id, `Count ${tableName}`);
+    } else {
+      createTab(sql, `Count ${tableName}`);
+    }
     setActiveView('query');
     if (activeConnectionId) {
       setTimeout(() => {
@@ -564,25 +584,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
 
                   {/* Nested Tables Tree under DB */}
-                  <div className="ml-2 pl-1 space-y-0.5 pt-1">
+                  <div className="ml-1 space-y-0.5 mt-0.5">
                     {tablesList.length === 0 ? (
                       <div className="py-3 text-center text-tx-muted text-[11px] italic">
                         {schemaTree ? 'No tables found' : 'Loading schema objects...'}
                       </div>
                     ) : (
-                      tablesList.map((table) => {
+                      tablesList.map((table, tIdx) => {
+                        const isLastTable = tIdx === tablesList.length - 1;
                         const isExpanded = Boolean(expandedTables[table.name]);
                         const cols = tableColumns[table.name] || [];
                         const isLoadingCols = Boolean(loadingColumnsFor[table.name]);
 
                         return (
-                          <div key={table.name} className="space-y-0.5">
+                          <div key={table.name} className="relative space-y-0.5">
                             {/* Table Item Row */}
                             <div
                               onClick={() => toggleTableExpansion(table.name)}
-                              className="px-2 py-1 rounded-md hover:bg-bg-overlay/60 text-tx-secondary hover:text-tx-primary flex items-center justify-between text-xs font-mono cursor-pointer transition-colors group"
+                              className="px-1.5 py-1 rounded-md hover:bg-bg-overlay/60 text-tx-secondary hover:text-tx-primary flex items-center justify-between text-xs font-mono cursor-pointer transition-colors group"
                             >
-                              <div className="flex items-center space-x-1.5 truncate flex-1 min-w-0">
+                              <div className="flex items-center space-x-1 truncate flex-1 min-w-0">
+                                <span className="text-tx-muted/40 font-mono text-[11px] select-none shrink-0 w-4 text-center">
+                                  {isLastTable ? '└─' : '├─'}
+                                </span>
                                 <span className="text-tx-muted group-hover:text-tx-primary p-0.5">
                                   {isExpanded ? (
                                     <ChevronDown className="w-3 h-3" />
@@ -616,11 +640,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               </div>
                             </div>
 
-                            {/* Expanded Table Columns */}
+                            {/* Expanded Table Columns & Rows */}
                             {isExpanded && (
-                              <div className="ml-4 pl-1.5 py-1 space-y-1 font-mono text-[10px]">
-                                {/* Quick actions row for table */}
-                                <div className="flex items-center space-x-1 pb-1 pt-0.5">
+                              <div
+                                className={`ml-3 pl-2 py-0.5 space-y-0.5 font-mono text-[10px] ${
+                                  !isLastTable
+                                    ? 'border-l border-white/10'
+                                    : 'border-l border-transparent'
+                                }`}
+                              >
+                                {/* Quick actions row for table rows */}
+                                <div className="flex items-center space-x-1.5 pb-1 pt-0.5">
+                                  <span className="text-tx-muted/40 font-mono text-[10px] select-none shrink-0">
+                                    ├──
+                                  </span>
                                   <button
                                     onClick={() => handleQuickSelectTableRows(table.name)}
                                     className="px-1.5 py-0.5 rounded bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary text-[9px] font-semibold transition-colors flex items-center space-x-1 cursor-pointer"
@@ -648,32 +681,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                   </div>
                                 ) : (
                                   <div className="space-y-0.5">
-                                    {cols.map((col) => (
-                                      <div
-                                        key={col.name}
-                                        onClick={() => handleInsertColumn(table.name, col.name)}
-                                        className="flex items-center justify-between text-tx-muted hover:text-tx-primary py-0.5 px-1 rounded hover:bg-bg-overlay/50 cursor-pointer group/col transition-colors"
-                                        title={`Click to query ${col.name} (${col.dataType})`}
-                                      >
-                                        <div className="flex items-center space-x-1.5 truncate">
-                                          {getColumnIcon(col.dataType, col.isPrimaryKey)}
-                                          <span className="truncate group-hover/col:text-accent-primary">
-                                            {col.name}
-                                          </span>
-                                        </div>
-
-                                        <div className="flex items-center space-x-1 shrink-0 ml-1">
-                                          <span className="text-[9px] text-tx-muted/60">
-                                            {col.dataType}
-                                          </span>
-                                          {col.isPrimaryKey && (
-                                            <span className="text-[8px] font-bold text-amber-400 px-0.5 rounded bg-amber-400/10">
-                                              PK
+                                    {cols.map((col, cIdx) => {
+                                      const isLastCol = cIdx === cols.length - 1;
+                                      return (
+                                        <div
+                                          key={col.name}
+                                          onClick={() => handleInsertColumn(table.name, col.name)}
+                                          className="flex items-center justify-between text-tx-muted hover:text-tx-primary py-0.5 px-1 rounded hover:bg-bg-overlay/50 cursor-pointer group/col transition-colors"
+                                          title={`Click to query ${col.name} (${col.dataType})`}
+                                        >
+                                          <div className="flex items-center space-x-1.5 truncate">
+                                            <span className="text-tx-muted/40 font-mono text-[10px] select-none shrink-0">
+                                              {isLastCol ? '└──' : '├──'}
                                             </span>
-                                          )}
+                                            {getColumnIcon(col.dataType, col.isPrimaryKey)}
+                                            <span className="truncate group-hover/col:text-accent-primary">
+                                              {col.name}
+                                            </span>
+                                          </div>
+
+                                          <div className="flex items-center space-x-1 shrink-0 ml-1">
+                                            <span className="text-[9px] text-tx-muted/60">
+                                              {col.dataType}
+                                            </span>
+                                            {col.isPrimaryKey && (
+                                              <span className="text-[8px] font-bold text-amber-400 px-0.5 rounded bg-amber-400/10">
+                                                PK
+                                              </span>
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>

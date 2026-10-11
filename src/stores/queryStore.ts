@@ -43,6 +43,7 @@ interface QueryStoreState {
   closeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   updateSql: (id: string, sql: string) => void;
+  renameTab: (id: string, newTitle: string) => void;
   runActiveQuery: (connectionId: string, customSql?: string) => Promise<void>;
   saveQuery: (title: string, sql: string, tags?: string[]) => void;
   removeSavedQuery: (id: string) => void;
@@ -115,6 +116,13 @@ export const useQueryStore = create<QueryStoreState>()(
       updateSql: (id, sql) => {
         set((state) => ({
           tabs: state.tabs.map((t) => (t.id === id ? { ...t, sql } : t)),
+        }));
+      },
+
+      renameTab: (id, newTitle) => {
+        if (!newTitle.trim()) return;
+        set((state) => ({
+          tabs: state.tabs.map((t) => (t.id === id ? { ...t, title: newTitle.trim() } : t)),
         }));
       },
 
