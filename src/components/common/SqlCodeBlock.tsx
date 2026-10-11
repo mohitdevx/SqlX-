@@ -35,7 +35,8 @@ const readOnlyTheme = EditorView.theme({
   '&': {
     backgroundColor: 'transparent',
     color: 'var(--color-text-primary, #e5e7eb)',
-    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     fontSize: '12px',
     cursor: 'text',
   },
@@ -51,7 +52,8 @@ const readOnlyTheme = EditorView.theme({
     lineHeight: '1.5',
   },
   '.cm-scroller': {
-    fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+    fontFamily:
+      'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     overflow: 'auto',
   },
 });

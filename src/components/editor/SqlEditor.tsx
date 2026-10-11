@@ -71,7 +71,8 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
         height: '100%',
         backgroundColor: 'var(--color-editor-bg)',
         color: 'var(--color-text-primary)',
-        fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
+        fontFamily:
+          'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
         fontSize: '13px',
       },
       '.cm-content': {
