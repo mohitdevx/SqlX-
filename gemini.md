@@ -27,150 +27,27 @@
 
 ---
 
-## 2. Immutable Migrated Project Folder Structure
+## 2. High-Level Architecture & Delegation
 
-The project structure is organized into an atomic, folder-driven modular architecture:
+SqlX uses an atomic, folder-driven modular architecture. To eliminate token waste across development sessions, exhaustive directory trees and feature mappings are delegated to specialized references:
+- **Feature & Component Fast Lookup**: Consult [**`appMap.md`**](file:///home/mohit/Desktop/Desktop/SqlX-/appMap.md) (contains visual component flow, quick action-to-file lookup table, and Tauri IPC mappings).
+- **Full Repository Directory Tree**: Documented in [**`README.md`**](file:///home/mohit/Desktop/Desktop/SqlX-/README.md).
 
-```
-SqlX/
-├── appMap.md                        # Master AI Quick-Lookup Architecture & Feature Map
-├── gemini.md                        # Master Project Rules & Architectural Contracts
-├── .github/
-│   └── workflows/
-│       ├── ci.yml                    # Automated cross-platform lint, test & typecheck
-│       └── release.yml               # Production build & release matrix
-├── .cargo/
-│   └── config.toml                  # Compiler & linker optimizations
-├── docker-compose.dev.yml           # Local multi-database testing environment
-├── src-tauri/                       # Native Rust Core Engine
-│   ├── Cargo.toml                   # Rust dependencies & profile optimizations
-│   ├── build.rs                     # Tauri build script
-│   ├── tauri.conf.json              # Tauri v2 desktop app configuration & window settings
-│   ├── capabilities/
-│   │   └── default.json             # Tauri v2 security capabilities & permissions
-│   └── src/
-│       ├── main.rs                  # Desktop executable entrypoint (WebKitGTK Wayland fix)
-│       ├── lib.rs                   # Tauri plugin & command registrar
-│       ├── state.rs                 # Shared async thread-safe application state
-│       ├── error.rs                 # Centralized typed error definitions (thiserror)
-│       ├── drivers/                 # Modular Database Driver Engine
-│       │   ├── mod.rs               # Database trait definitions & factory
-│       │   ├── common.rs            # Shared row decoding macros & metadata helpers
-│       │   ├── postgres.rs          # PostgreSQL driver implementation
-│       │   ├── mysql.rs             # MySQL/MariaDB driver implementation
-│       │   └── sqlite.rs            # SQLite local file driver implementation
-│       ├── commands/                # Tauri IPC Command Handlers
-│       │   ├── mod.rs
-│       │   ├── connection.rs        # Connect, test, disconnect
-│       │   ├── query.rs             # Execute query
-│       │   ├── schema.rs            # Fetch schema tree, table columns
-│       │   └── theme.rs             # Load user themes, list custom themes
-│       ├── models/                  # Shared Rust data models & DTOs
-│       │   ├── mod.rs
-│       │   ├── connection.rs        # Connection configuration structs
-│       │   ├── query.rs             # Query execution request / response payloads
-│       │   └── schema.rs            # Schema object tree representations
-│       └── utils/
-│           ├── mod.rs
-│           ├── sql_parser.rs        # SQL statement splitting & sanitization
-│           └── fs_theme.rs          # Filesystem theme loader & watcher
-├── src/                             # React 19 / TypeScript UI
-│   ├── components/
-│   │   ├── ui/                      # Atomic Design Primitives
-│   │   │   ├── index.ts             # Barrel export for all UI primitives
-│   │   │   ├── atoms/
-│   │   │   │   ├── Button.tsx       # Reusable button with variants & sizes
-│   │   │   │   ├── Input.tsx        # Standard text input with focus & error styling
-│   │   │   │   ├── Badge.tsx        # Status, environment & transform pills
-│   │   │   │   ├── IconButton.tsx   # Square icon-only button
-│   │   │   │   └── UnderlineTab.tsx # Tab with NO background & bottom border highlight
-│   │   │   └── molecules/
-│   │   │       ├── SearchInput.tsx  # Search input with icon & clear button
-│   │   │       ├── DropdownMenu.tsx # Popover menu with click-outside detection
-│   │   │       ├── Toast.tsx        # Floating notification toast
-│   │   │       └── Modal.tsx        # Accessible dialog backdrop container
-│   │   ├── layout/
-│   │   │   ├── TitleBar.tsx         # Top window bar & platform window controls
-│   │   │   ├── StatusBar.tsx        # Bottom session telemetry bar
-│   │   │   ├── ActivityBar.tsx      # View navigation activity bar
-│   │   │   ├── Sidebar.tsx          # Resizable sidebar container
-│   │   │   └── sidebar/
-│   │   │       ├── SidebarNav.tsx   # Top navigation links & "+ New Query" CTA
-│   │   │       ├── ConnectionList.tsx # Configured connection list & inline rename
-│   │   │       └── SchemaExplorer.tsx # Database tree, tables, columns & quick queries
-│   │   ├── editor/
-│   │   │   ├── SqlEditor.tsx        # CodeMirror 6 SQL editor with autocomplete
-│   │   │   ├── EditorTabBar.tsx     # Tab strip with rename, close & telemetry
-│   │   │   └── EditorSplitPane.tsx  # Resizable vertical divider for editor/results
-│   │   ├── results/
-│   │   │   ├── ResultsPanel.tsx     # Query results coordinator
-│   │   │   ├── ResultsToolbar.tsx   # Underline mode tabs, search, extensions & export
-│   │   │   ├── ExportDropdown.tsx   # JSON, CSV, Copy JSON export dropdown
-│   │   │   ├── ExtensionsMenu.tsx   # Data extensions popover (white Blocks icon)
-│   │   │   └── views/
-│   │   │       ├── GridView.tsx     # Tabular DataGrid wrapper
-│   │   │       ├── JsonView.tsx     # Syntax-highlighted JSON viewer
-│   │   │       ├── ChartView.tsx    # Minimalist solid bar chart view
-│   │   │       ├── SchemaView.tsx   # Column structure & data type table
-│   │   │       ├── RunningStateView.tsx # Animated query execution pulse
-│   │   │       ├── ErrorStateView.tsx   # Error container with pre-wrap
-│   │   │       └── EmptyStateView.tsx   # Ready to query terminal placeholder
-│   │   ├── theme/
-│   │   │   ├── ThemeManager.tsx     # Appearance view coordinator
-│   │   │   ├── ThemeCategories.tsx  # Underline category filter tabs (no background)
-│   │   │   ├── ThemeCard.tsx        # Theme preview tile & syntax mock
-│   │   │   └── ThemeEditorModal.tsx # Custom theme creator & JSON validator modal
-│   │   ├── connection/
-│   │   │   ├── ConnectionsDashboard.tsx # Management dashboard with search & URI form
-│   │   │   ├── ConnectionCard.tsx       # Expandable connection profile card
-│   │   │   └── ConnectionModal.tsx      # Add/edit connection parameters dialog
-│   │   ├── grid/
-│   │   │   └── DataGrid.tsx         # Virtualized row table (TanStack Virtual)
-│   │   ├── common/
-│   │   │   ├── CommandPalette.tsx   # Ctrl+K command search palette
-│   │   │   └── SqlCodeBlock.tsx     # Standalone syntax-highlighted SQL block
-│   │   └── views/
-│   │       ├── HomeView.tsx         # Welcome screen & quick connection setup
-│   │       ├── HistoryView.tsx      # Past query execution log
-│   │       ├── SavedQueriesView.tsx # Saved query snippets view
-│   │       └── ExtensionsView.tsx   # Installed extensions & tools catalog
-│   ├── data/
-│   │   ├── builtinThemes.ts         # 13 Built-in themes (650+ lines extracted)
-│   │   └── dataExtensions.ts        # Data transformation definitions catalog
-│   ├── utils/
-│   │   ├── exportUtils.ts           # JSON & CSV file downloads & clipboard copy
-│   │   ├── jsonHighlight.tsx        # Tokenized JSON syntax highlighter
-│   │   └── dataTransforms.ts        # Pure data transform algorithms
-│   ├── stores/
-│   │   ├── connectionStore.ts       # Connection sessions & schema state
-│   │   ├── queryStore.ts            # Query tabs, execution & history state
-│   │   └── themeStore.ts            # Active theme & custom theme state
-│   ├── services/
-│   │   ├── tauriBridge.ts           # Type-safe Rust IPC invocation bridge
-│   │   └── themeEngine.ts           # CSS Custom Property injector
-│   ├── types/
-│   │   ├── database.ts              # Database interfaces matching Rust DTOs
-│   │   └── theme.ts                 # Theme color token interfaces
-│   ├── styles/
-│   │   └── globals.css              # Tailwind base, components & utilities
-│   ├── App.tsx                      # Root application layout & keyboard shortcuts
-│   └── main.tsx                     # UI React 19 bootstrap entrypoint
-├── themes/                          # Default & User JSON Themes
-│   ├── theme.schema.json            # JSON Schema specification for theme validation
-│   ├── dark-solid.json              # Default dark solid theme
-│   ├── light-solid.json             # Default light solid theme
-│   └── midnight-slate.json          # Midnight slate theme
-├── .editorconfig
-├── .gitignore
-├── .oxlintrc.json                   # Oxlint fast linter configuration
-├── biome.json                       # Biome formatter & linter configuration
-├── tsconfig.json                    # Strict TypeScript configuration
-├── tsconfig.node.json
-├── vite.config.ts                   # Fast Vite bundler configuration
-├── tailwind.config.ts               # Tailwind CSS configured for dynamic CSS variable tokens
-├── postcss.config.js
-└── package.json
-```
+### Module Organization Summary
+- **Frontend Primitives (`src/components/ui/`)**: Atomic UI elements split into `atoms/` (`Button`, `Input`, `Badge`, `IconButton`, `UnderlineTab`) and `molecules/` (`SearchInput`, `DropdownMenu`, `Toast`, `Modal`).
+- **Feature Modules (`src/components/`)**:
+  - `layout/`: TitleBar, ActivityBar, StatusBar, and modular `sidebar/` (`SidebarNav`, `ConnectionList`, `SchemaExplorer`).
+  - `editor/`: `SqlEditor`, `EditorTabBar`, `EditorSplitPane`.
+  - `results/`: Coordinator, toolbar, export popover, and modular `views/` (`GridView`, `JsonView`, `ChartView`, `SchemaView`, state screens).
+  - `theme/`: `ThemeManager`, `ThemeCategories`, `ThemeCard`, `ThemeEditorModal`.
+  - `connection/`: `ConnectionsDashboard`, `ConnectionCard`, `ConnectionModal`.
+- **Data & Utilities (`src/data/`, `src/utils/`)**:
+  - `src/data/`: `builtinThemes.ts` (13 themes extracted from UI logic), `dataExtensions.ts`.
+  - `src/utils/`: `exportUtils.ts` (CSV/JSON download/copy), `jsonHighlight.tsx`, `dataTransforms.ts`.
+- **Rust Backend Engine (`src-tauri/src/`)**:
+  - `drivers/`: `DatabaseAdapter` implementations (`postgres.rs`, `mysql.rs`, `sqlite.rs`) utilizing shared row decoding macros in `common.rs`.
+  - `commands/`: IPC handlers (`connection.rs`, `query.rs`, `schema.rs`, `theme.rs`).
+  - `state.rs`: Thread-safe connection pool manager (`Arc<RwLock<ConnectionManager>>`).
 
 ---
 

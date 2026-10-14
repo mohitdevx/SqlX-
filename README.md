@@ -74,47 +74,62 @@ The UI is strictly reactive and zero-dependency where it matters. State is decou
 - **`queryStore`**: Open editor tabs, persistent SQL audit logs, and bookmark snippets.
 - **`themeStore`**: Dynamic CSS variables and color palettes.
 
----
-
 ## Repository Structure
+
+SqlX uses an atomic, folder-driven modular architecture designed for high performance, maintainability, and rapid feature navigation. For an in-depth interactive feature-to-file lookup matrix and component dependency flow, refer to [**`appMap.md`**](appMap.md).
 
 ```
 SqlX-/
+├── appMap.md                   # Centralized architectural map & quick feature-to-file index
+├── gemini.md                   # Development invariants & architectural standards
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml              # Continuous integration (typecheck, lint, test)
 │       └── release.yml         # Automated multi-platform release & binary packaging
 │
 ├── src/                        # Frontend application layer (React 19 + TypeScript)
-│   ├── components/             # Reactive UI component architecture
-│   │   ├── common/             # Shared primitives & syntax-highlighted code viewers
-│   │   ├── connection/         # Connection management & expandable metadata tabs
-│   │   ├── editor/             # CodeMirror 6 query editor & autocomplete providers
-│   │   ├── grid/               # High-velocity virtualized table grid
-│   │   ├── layout/             # Resizable side panel, titlebar & activity frames
-│   │   ├── results/            # Execution telemetry, table outputs & diagnostics
-│   │   ├── theme/              # Visual customization & palette manager
-│   │   └── views/              # Top-level workspace views (Home, History, Snippets, Extensions)
-│   ├── services/               # Strongly typed Tauri IPC bridge & theme engine
-│   ├── stores/                 # Zustand global state stores with selective persistence
+│   ├── components/             # Atomic & modular UI component architecture
+│   │   ├── ui/                 # Reusable atomic design system primitives
+│   │   │   ├── atoms/          # Button, Input, Badge, IconButton, UnderlineTab
+│   │   │   └── molecules/      # SearchInput, DropdownMenu, Toast, Modal
+│   │   ├── layout/             # Window layout chrome (TitleBar, ActivityBar, StatusBar)
+│   │   │   └── sidebar/        # SidebarNav, ConnectionList, SchemaExplorer
+│   │   ├── editor/             # CodeMirror 6 query editor, EditorTabBar, EditorSplitPane
+│   │   ├── results/            # Results coordinator, ResultsToolbar, ExportDropdown, ExtensionsMenu
+│   │   │   └── views/          # GridView, JsonView, ChartView, SchemaView, State views
+│   │   ├── theme/              # ThemeManager, ThemeCategories, ThemeCard, ThemeEditorModal
+│   │   ├── connection/         # ConnectionsDashboard, ConnectionCard, ConnectionModal
+│   │   ├── grid/               # High-velocity virtualized data table (TanStack Virtual)
+│   │   ├── common/             # CommandPalette, SqlCodeBlock
+│   │   └── views/              # Top-level workspace views (Home, History, SavedQueries, Extensions)
+│   ├── data/                   # Built-in themes (650+ lines extracted) & data extensions catalog
+│   ├── utils/                  # Export utilities (CSV/JSON), syntax highlighters & data transforms
+│   ├── services/               # Strongly typed Tauri IPC bridge & CSS variable theme engine
+│   ├── stores/                 # Zustand global state stores (connectionStore, queryStore, themeStore)
 │   ├── styles/                 # Design tokens, scrollbar styling & Tailwind configuration
-│   └── types/                  # Type definitions for database models & UI state
+│   └── types/                  # Type definitions for database models & UI theme tokens
 │
 ├── src-tauri/                  # Desktop backend (Rust & Tauri 2)
 │   ├── src/                    # Core backend implementation
-│   │   ├── commands/           # IPC handlers for connection, query & schema operations
+│   │   ├── commands/           # IPC handlers (connection, query, schema, theme)
 │   │   ├── drivers/            # Native async database drivers (PostgreSQL, MySQL, SQLite)
+│   │   │   └── common.rs       # Shared row decoding macros & metadata helpers
 │   │   ├── models/             # Serializable transfer objects & database schema trees
-│   │   └── utils/              # Internal utilities & logging infrastructure
-│   ├── icons/                  # Platform icon assets (macOS, Windows, Linux)
+│   │   ├── utils/              # Internal utilities & logging infrastructure
+│   │   ├── state.rs            # Thread-safe async connection pool & session state
+│   │   ├── error.rs            # Centralized typed error definitions (thiserror)
+│   │   ├── main.rs             # Application entrypoint (WebKitGTK Wayland fix)
+│   │   └── lib.rs              # Tauri command registrar & plugin initialization
 │   ├── Cargo.toml              # Rust dependency manifest & release optimization flags
 │   └── tauri.conf.json         # Desktop application window settings, security & bundler rules
 │
-├── tailwind.config.ts          # Tailwind design system & native system font stack
+├── themes/                     # Default & user-defined JSON theme palettes
+├── tailwind.config.ts          # Tailwind design system & dynamic CSS variable mappings
 ├── vite.config.ts              # Vite frontend bundler configuration & path aliases
 ├── biome.json                  # Biome code formatting & linting rules
 └── package.json                # Project dependencies, scripts & metadata
 ```
+
 
 ---
 
