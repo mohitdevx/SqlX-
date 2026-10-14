@@ -126,9 +126,7 @@ export const ConnectionList: React.FC<ConnectionListProps> = ({
                 <div
                   key={conn.id}
                   onClick={() => {
-                    if (!isActive) {
-                      onConnect(conn);
-                    }
+                    onConnect(conn);
                   }}
                   className={`group px-2 py-1.5 rounded-md flex items-center justify-between cursor-pointer transition-colors ${
                     isActive

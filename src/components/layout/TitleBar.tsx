@@ -1,15 +1,22 @@
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
-import { Loader2, Play, Search, Settings, Zap } from 'lucide-react';
+import { Loader2, PanelRight, Play, Search, Settings, Zap } from 'lucide-react';
 import type React from 'react';
 
 interface TitleBarProps {
   onOpenNewConnection?: () => void;
   onOpenCommandPalette: () => void;
   onOpenThemeManager: () => void;
+  isRightbarOpen?: boolean;
+  onToggleRightbar?: () => void;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpenThemeManager }) => {
+export const TitleBar: React.FC<TitleBarProps> = ({
+  onOpenCommandPalette,
+  onOpenThemeManager,
+  isRightbarOpen,
+  onToggleRightbar,
+}) => {
   const { runActiveQuery, tabs, activeTabId, selectedSql } = useQueryStore();
   const { activeConnectionId } = useConnectionStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
@@ -79,11 +86,26 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenCommandPalette, onOpen
 
         {/* Settings Button */}
         <button
+          type="button"
           onClick={onOpenThemeManager}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-all duration-150"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-tx-muted hover:text-tx-primary hover:bg-bg-overlay transition-all duration-150 cursor-pointer"
           title="Settings & Appearance"
         >
           <Settings className="w-4 h-4" strokeWidth={1.5} />
+        </button>
+
+        {/* Toggle Rightbar / Table Schema Inspector */}
+        <button
+          type="button"
+          onClick={onToggleRightbar}
+          className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-150 cursor-pointer ${
+            isRightbarOpen
+              ? 'text-accent-primary bg-accent-primary/15 hover:bg-accent-primary/25'
+              : 'text-tx-muted hover:text-tx-primary hover:bg-bg-overlay'
+          }`}
+          title={isRightbarOpen ? 'Hide Table Inspector (Ctrl+I)' : 'Show Table Inspector (Ctrl+I)'}
+        >
+          <PanelRight className="w-4 h-4" strokeWidth={1.5} />
         </button>
       </div>
     </header>

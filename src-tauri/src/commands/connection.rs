@@ -26,10 +26,14 @@ pub async fn connect_database(
         .connections
         .write()
         .insert(connection_id.clone(), config);
-    state
+    let old_adapter = state
         .active_sessions
         .write()
         .insert(connection_id.clone(), Arc::new(adapter));
+
+    if let Some(old) = old_adapter {
+        let _ = old.close().await;
+    }
 
     Ok(connection_id)
 }

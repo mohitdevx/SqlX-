@@ -34,7 +34,10 @@ interface ConnectionState {
   connect: (config: ConnectionConfig) => Promise<boolean>;
   disconnect: () => Promise<void>;
   refreshSchema: () => Promise<void>;
+  switchDatabase: (databaseName: string) => Promise<boolean>;
   fetchTableColumns: (tableName: string) => Promise<ColumnSchema[]>;
+  selectedTable: string | null;
+  setSelectedTable: (table: string | null) => void;
 }
 
 export const useConnectionStore = create<ConnectionState>()(
@@ -44,8 +47,11 @@ export const useConnectionStore = create<ConnectionState>()(
       activeConnectionId: null,
       schemaTree: null,
       tableColumns: {},
+      selectedTable: null,
       isLoading: false,
       error: null,
+
+      setSelectedTable: (table) => set({ selectedTable: table }),
 
       addConnection: (config) => {
         set((state) => {
@@ -90,9 +96,24 @@ export const useConnectionStore = create<ConnectionState>()(
           }
           return true;
         } catch (err: unknown) {
-          set({ error: String(err), isLoading: false });
+          // Clear zombie activeConnectionId if connection failed to prevent broken state
+          set({ activeConnectionId: null, schemaTree: null, error: String(err), isLoading: false });
           return false;
         }
+      },
+
+      switchDatabase: async (databaseName: string) => {
+        const { activeConnectionId, connections, connect } = get();
+        if (!activeConnectionId) return false;
+        const currentConn = connections.find((c) => c.id === activeConnectionId);
+        if (!currentConn) return false;
+
+        const updatedConfig: ConnectionConfig = {
+          ...currentConn,
+          database: databaseName,
+        };
+
+        return await connect(updatedConfig);
       },
 
       disconnect: async () => {
@@ -104,7 +125,7 @@ export const useConnectionStore = create<ConnectionState>()(
             // ignore disconnect error
           }
         }
-        set({ activeConnectionId: null, schemaTree: null, tableColumns: {} });
+        set({ activeConnectionId: null, schemaTree: null, tableColumns: {}, selectedTable: null });
       },
 
       refreshSchema: async () => {

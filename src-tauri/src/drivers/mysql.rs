@@ -105,10 +105,12 @@ impl DatabaseAdapter for MysqlAdapter {
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
         let db_rows = sqlx::raw_sql("SHOW DATABASES;")
             .fetch_all(&self.pool)
-            .await
-            .map_err(AppError::Database)?;
+            .await;
 
-        let databases: Vec<String> = db_rows.iter().filter_map(|r| r.try_get(0).ok()).collect();
+        let databases: Vec<String> = match db_rows {
+            Ok(rows) => rows.iter().filter_map(|r| r.try_get(0).ok()).collect(),
+            Err(_) => Vec::new(),
+        };
 
         let table_rows = sqlx::raw_sql(
             "SELECT table_schema, table_name, table_type FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys') ORDER BY table_name;"

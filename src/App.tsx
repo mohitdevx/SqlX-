@@ -3,6 +3,7 @@ import { ConnectionsDashboard } from '@/components/connection/ConnectionsDashboa
 import { EditorSplitPane } from '@/components/editor/EditorSplitPane';
 import { EditorTabBar } from '@/components/editor/EditorTabBar';
 import { SqlEditor } from '@/components/editor/SqlEditor';
+import { Rightbar } from '@/components/layout/Rightbar';
 import { type NavView, Sidebar } from '@/components/layout/Sidebar';
 import { TitleBar } from '@/components/layout/TitleBar';
 import { ResultsPanel } from '@/components/results/ResultsPanel';
@@ -21,6 +22,7 @@ import { useEffect, useState } from 'react';
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<NavView>('query');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isRightbarOpen, setIsRightbarOpen] = useState(true);
 
   const {
     tabs,
@@ -69,6 +71,11 @@ export const App: React.FC = () => {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
       }
+      // Ctrl+I -> Toggle Rightbar (Table Inspector)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
+        e.preventDefault();
+        setIsRightbarOpen((prev) => !prev);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -82,6 +89,8 @@ export const App: React.FC = () => {
         onOpenNewConnection={() => setActiveView('home')}
         onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onOpenThemeManager={() => setActiveView('theme')}
+        isRightbarOpen={isRightbarOpen}
+        onToggleRightbar={() => setIsRightbarOpen((prev) => !prev)}
       />
 
       {/* Main Workspace */}
@@ -91,6 +100,7 @@ export const App: React.FC = () => {
           activeView={activeView}
           setActiveView={setActiveView}
           onOpenNewConnectionModal={() => setActiveView('home')}
+          onTableSelected={() => setIsRightbarOpen(true)}
         />
 
         {/* Home / Add Database Setup View */}
@@ -159,6 +169,9 @@ export const App: React.FC = () => {
             />
           </div>
         )}
+
+        {/* Mouse-Resizable Right Panel (Table Schema Inspector) */}
+        <Rightbar isOpen={isRightbarOpen} onClose={() => setIsRightbarOpen(false)} />
       </div>
 
       {/* Command Palette */}

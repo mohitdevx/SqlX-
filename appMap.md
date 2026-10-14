@@ -27,12 +27,14 @@ graph TD
     App["App.tsx (Global Shell & Route State)"]
     TitleBar["layout/TitleBar.tsx"]
     Sidebar["layout/Sidebar.tsx"]
+    Rightbar["layout/Rightbar.tsx (Table Schema Inspector)"]
     SidebarNav["layout/sidebar/SidebarNav.tsx"]
     ConnectionList["layout/sidebar/ConnectionList.tsx"]
     SchemaExplorer["layout/sidebar/SchemaExplorer.tsx"]
     
     App --> TitleBar
     App --> Sidebar
+    App --> Rightbar
     Sidebar --> SidebarNav
     Sidebar --> ConnectionList
     Sidebar --> SchemaExplorer
@@ -89,15 +91,16 @@ Use this table to find the target file for any user request or UI update:
 | **Custom Theme Modal & JSON Validator** | [`src/components/theme/ThemeEditorModal.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/theme/ThemeEditorModal.tsx) | - | `ThemeEditorModal`, file upload, live JSON preview |
 | **Sidebar Navigation Links & New Query CTA** | [`src/components/layout/sidebar/SidebarNav.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/sidebar/SidebarNav.tsx) | - | `SidebarNav`, `onNewQuery`, `activeView` |
 | **Sidebar Saved Connections List & Renaming** | [`src/components/layout/sidebar/ConnectionList.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/sidebar/ConnectionList.tsx) | - | `ConnectionList`, inline rename input, disconnect |
-| **Sidebar Schema Explorer & Table Quick Queries** | [`src/components/layout/sidebar/SchemaExplorer.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/sidebar/SchemaExplorer.tsx) | - | `SchemaExplorer`, table rows, count, column insertion |
+| **Sidebar Schema Explorer (Unified Tree)** | [`src/components/layout/sidebar/SchemaExplorer.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/sidebar/SchemaExplorer.tsx) | - | `SchemaExplorer`, hierarchical tree `dbname > table_name > columns` with vertical guide lines (`\|`), table selection, database switcher |
 | **Sidebar Resizing & Coordinator** | [`src/components/layout/Sidebar.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/Sidebar.tsx) | `sidebar/` subcomponents | Mouse drag resizer (180px–500px) |
+| **Table Schema Inspector (Toggleable Rightbar)** | [`src/components/layout/Rightbar.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/Rightbar.tsx) | [`UnderlineTab.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/ui/atoms/UnderlineTab.tsx) | `Rightbar`, Columns schema, Primary keys, Table info, Quick SQL actions, drag resizer (260px–550px) |
 | **Query Editor Tab Bar** (Tabs, Rename, Close, New) | [`src/components/editor/EditorTabBar.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/editor/EditorTabBar.tsx) | - | `EditorTabBar`, inline rename, execution time/rows |
 | **Editor vs Results Split Pane Resizer** | [`src/components/editor/EditorSplitPane.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/editor/EditorSplitPane.tsx) | - | `EditorSplitPane`, vertical drag divider handle |
 | **CodeMirror SQL Editor & Keyboard Shortcuts** | [`src/components/editor/SqlEditor.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/editor/SqlEditor.tsx) | `@codemirror/lang-sql`, `@codemirror/autocomplete` | `SqlEditor`, F5, selection change |
 | **Connections Dashboard & URI Connect Form** | [`src/components/connection/ConnectionsDashboard.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/connection/ConnectionsDashboard.tsx) | [`ConnectionCard.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/connection/ConnectionCard.tsx) | `ConnectionsDashboard`, URI form, filters |
 | **Connection Card in Dashboard** | [`src/components/connection/ConnectionCard.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/connection/ConnectionCard.tsx) | - | `ConnectionCard`, test, delete, copy URI, details |
 | **Connection Setup Modal Dialog** | [`src/components/connection/ConnectionModal.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/connection/ConnectionModal.tsx) | - | `ConnectionModal`, profile form, test connection |
-| **Window TitleBar & Controls** | [`src/components/layout/TitleBar.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/TitleBar.tsx) | - | `TitleBar`, window minimize/maximize/close, brand |
+| **Window TitleBar & Controls** | [`src/components/layout/TitleBar.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/layout/TitleBar.tsx) | - | `TitleBar`, brand, command palette trigger, execute button, settings, Rightbar inspector toggle (`PanelRight`) |
 | **Command Palette (Ctrl+K)** | [`src/components/common/CommandPalette.tsx`](file:///home/mohit/Desktop/Desktop/SqlX-/src/components/common/CommandPalette.tsx) | - | `CommandPalette`, action search |
 | **PostgreSQL Database Driver** | [`src-tauri/src/drivers/postgres.rs`](file:///home/mohit/Desktop/Desktop/SqlX-/src-tauri/src/drivers/postgres.rs) | [`common.rs`](file:///home/mohit/Desktop/Desktop/SqlX-/src-tauri/src/drivers/common.rs) | `PostgresAdapter`, PgPool, JSONB decode |
 | **MySQL Database Driver** | [`src-tauri/src/drivers/mysql.rs`](file:///home/mohit/Desktop/Desktop/SqlX-/src-tauri/src/drivers/mysql.rs) | [`common.rs`](file:///home/mohit/Desktop/Desktop/SqlX-/src-tauri/src/drivers/common.rs) | `MysqlAdapter`, MySqlPool |
@@ -142,7 +145,7 @@ Use this table to find the target file for any user request or UI update:
 - **`Sidebar.tsx`**: Master sidebar coordinator managing drag-resize width (180px–500px).
 - **`sidebar/SidebarNav.tsx`**: Navigation links (Home, SQL Editor, Connections, History, Saved Queries, Extensions) and "+ New Query" CTA.
 - **`sidebar/ConnectionList.tsx`**: Collapsible configured connection list with inline rename, status capsule, and disconnect.
-- **`sidebar/SchemaExplorer.tsx`**: Hierarchical database schema tree with expandable tables, column types, primary key badges, and quick queries ("Rows", "Count").
+- **`sidebar/SchemaExplorer.tsx`**: Hierarchical multi-database explorer with live database switching, table search filter, expandable columns, primary key badges, and quick queries ("Rows", "Count").
 - **`TitleBar.tsx`**: Top window bar with drag region, quick action buttons, and platform window controls.
 - **`StatusBar.tsx`**: Bottom footer bar showing connection status and active session info.
 - **`ActivityBar.tsx`**: Narrow icon bar for switching views.

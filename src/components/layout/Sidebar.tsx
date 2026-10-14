@@ -8,16 +8,18 @@ import { type NavView, SidebarNav } from './sidebar/SidebarNav';
 
 export type { NavView };
 
-interface SidebarProps {
+export interface SidebarProps {
   activeView: NavView;
   setActiveView: (view: NavView) => void;
   onOpenNewConnectionModal: () => void;
+  onTableSelected?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeView,
   setActiveView,
   onOpenNewConnectionModal,
+  onTableSelected,
 }) => {
   const {
     connections,
@@ -29,6 +31,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     refreshSchema,
     tableColumns,
     fetchTableColumns,
+    switchDatabase,
+    selectedTable,
+    setSelectedTable,
     isLoading: isConnecting,
   } = useConnectionStore();
 
@@ -63,12 +68,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     [realConnections, activeConnectionId]
   );
 
-  // Auto-fetch schema if connected and schemaTree is null
+  // Auto-sync connection with the database on launch or re-mount
   useEffect(() => {
-    if (activeConnectionId && !schemaTree) {
-      refreshSchema();
+    if (activeConnectionId && activeConn && !schemaTree && !isConnecting) {
+      connect(activeConn);
     }
-  }, [activeConnectionId, schemaTree, refreshSchema]);
+  }, [activeConnectionId, activeConn, schemaTree, isConnecting, connect]);
 
   // Sidebar drag-to-resize handlers
   const handleMouseDownResize = useCallback((e: React.MouseEvent) => {
@@ -185,12 +190,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           activeConnectionId={activeConnectionId}
           schemaTree={schemaTree}
           tableColumns={tableColumns}
+          selectedTable={selectedTable}
           isConnecting={isConnecting}
           onRefreshSchema={refreshSchema}
           onFetchTableColumns={fetchTableColumns}
+          onSelectTable={(tableName) => {
+            setSelectedTable(tableName);
+            onTableSelected?.();
+          }}
           onQuickSelectRows={handleQuickSelectTableRows}
           onQuickCountRows={handleQuickCountTableRows}
           onInsertColumn={handleInsertColumn}
+          onSwitchDatabase={switchDatabase}
         />
       </div>
 

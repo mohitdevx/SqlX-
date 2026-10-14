@@ -110,13 +110,22 @@ impl DatabaseAdapter for PostgresAdapter {
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
         let db_rows = sqlx::raw_sql(
-            "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;",
+            "SELECT datname FROM pg_database WHERE datistemplate = false AND datallowconn = true ORDER BY datname;",
         )
         .fetch_all(&self.pool)
-        .await
-        .map_err(AppError::Database)?;
+        .await;
 
-        let databases: Vec<String> = db_rows.iter().filter_map(|r| r.try_get(0).ok()).collect();
+        let databases: Vec<String> = match db_rows {
+            Ok(rows) => {
+                let list: Vec<String> = rows.iter().filter_map(|r| r.try_get(0).ok()).collect();
+                if list.is_empty() {
+                    vec!["postgres".to_string()]
+                } else {
+                    list
+                }
+            }
+            Err(_) => vec!["postgres".to_string()],
+        };
 
         let table_rows = sqlx::raw_sql(
             "SELECT table_schema, table_name, table_type FROM information_schema.tables WHERE table_schema NOT IN ('information_schema', 'pg_catalog') ORDER BY table_schema, table_name;"
