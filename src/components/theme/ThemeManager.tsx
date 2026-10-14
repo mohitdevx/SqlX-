@@ -820,7 +820,7 @@ export const ThemeManager: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center text-accent-primary">
+              <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center text-accent-primary">
                 <Palette className="w-4 h-4" />
               </div>
               <h1 className="text-xl font-medium tracking-tight text-tx-primary">Appearance</h1>
@@ -856,23 +856,26 @@ export const ThemeManager: React.FC = () => {
           </div>
         </div>
 
-        {/* Filter Pills (Strictly 4: All, Light, Dark, Custom) & Search */}
+        {/* Filter Tabs (Strictly 4: All, Light, Dark, Custom) & Search */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {/* Strict 4 Category Filter Pills */}
-          <div className="flex items-center space-x-1 p-0.5 rounded-lg bg-white/[0.04] self-start overflow-x-auto max-w-full">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                  selectedCategory === cat.id
-                    ? 'bg-white/[0.08] text-tx-primary shadow-xs'
-                    : 'text-tx-muted hover:text-tx-secondary'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          {/* Strict 4 Category Filter Tabs */}
+          <div className="flex items-center space-x-5 self-start overflow-x-auto max-w-full">
+            {CATEGORIES.map((cat) => {
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`py-1.5 px-1 text-xs font-medium transition-all cursor-pointer border-b-2 ${
+                    isActive
+                      ? 'border-accent-primary text-accent-primary'
+                      : 'border-transparent text-tx-muted hover:text-tx-primary'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search Input */}
