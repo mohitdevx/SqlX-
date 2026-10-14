@@ -26,6 +26,8 @@ export interface QueryResult {
   rows: (string | number | boolean | null | object)[][];
   rowsAffected: number;
   executionTimeMs: number;
+  truncated?: boolean;
+  hasMore?: boolean;
 }
 
 export interface TableSchema {

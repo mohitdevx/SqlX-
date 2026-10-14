@@ -16,5 +16,5 @@ pub async fn execute_query(
             .ok_or_else(|| AppError::ConnectionNotFound(request.connection_id.clone()))?
     };
 
-    session.execute_query(&request.sql).await
+    session.execute_query(&request.sql, request.limit, request.offset).await
 }

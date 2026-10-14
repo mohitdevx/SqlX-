@@ -10,7 +10,12 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait DatabaseAdapter: Send + Sync {
     async fn ping(&self) -> AppResult<()>;
-    async fn execute_query(&self, sql: &str) -> AppResult<QueryResult>;
+    async fn execute_query(
+        &self,
+        sql: &str,
+        limit: Option<usize>,
+        offset: Option<usize>,
+    ) -> AppResult<QueryResult>;
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree>;
     async fn get_table_columns(&self, table_name: &str) -> AppResult<Vec<ColumnSchema>>;
     async fn close(&self) -> AppResult<()>;

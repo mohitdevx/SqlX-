@@ -24,4 +24,8 @@ pub struct QueryResult {
     pub rows: Vec<Vec<serde_json::Value>>,
     pub rows_affected: u64,
     pub execution_time_ms: u64,
+    #[serde(default)]
+    pub truncated: bool,
+    #[serde(default)]
+    pub has_more: bool,
 }

@@ -34,6 +34,9 @@ export const App: React.FC = () => {
     updateSql,
     renameTab,
     runActiveQuery,
+    nextPage,
+    prevPage,
+    changePageSize,
   } = useQueryStore();
   const { activeConnectionId } = useConnectionStore();
   const { currentTheme } = useThemeStore();
@@ -164,6 +167,17 @@ export const App: React.FC = () => {
                   result={activeTab?.result || null}
                   error={activeTab?.error || null}
                   isRunning={activeTab?.isRunning}
+                  page={activeTab?.page || 1}
+                  pageSize={activeTab?.pageSize || 1000}
+                  onNextPage={() => {
+                    if (activeConnectionId) nextPage(activeConnectionId);
+                  }}
+                  onPrevPage={() => {
+                    if (activeConnectionId) prevPage(activeConnectionId);
+                  }}
+                  onChangePageSize={(size) => {
+                    if (activeConnectionId) changePageSize(activeConnectionId, size);
+                  }}
                 />
               }
             />

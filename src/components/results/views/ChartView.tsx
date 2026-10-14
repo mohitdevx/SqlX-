@@ -14,16 +14,16 @@ export const ChartView: React.FC<ChartViewProps> = ({ result, effectiveResult })
 
   return (
     <div className="w-full h-full p-6 flex flex-col space-y-4 overflow-auto bg-bg-base font-sans">
-      <div className="flex items-center space-x-6 text-xs bg-white/[0.04] p-3 rounded-xl">
+      <div className="flex items-center space-x-6 text-xs bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl">
         <div className="flex items-center space-x-2">
           <span className="text-tx-secondary font-medium">Category (X):</span>
           <select
             value={chartXCol}
             onChange={(e) => setChartXCol(Number(e.target.value))}
-            className="bg-bg-base rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+            className="bg-[#141416] border border-white/10 rounded-lg px-2.5 py-1 text-tx-primary text-xs font-mono focus:outline-none focus:border-accent-primary/50 cursor-pointer"
           >
             {result.columns.map((c, i) => (
-              <option key={c.name} value={i}>
+              <option key={c.name} value={i} className="bg-[#141416] text-tx-primary">
                 {c.name} ({c.dataType})
               </option>
             ))}
@@ -35,10 +35,10 @@ export const ChartView: React.FC<ChartViewProps> = ({ result, effectiveResult })
           <select
             value={chartYCol}
             onChange={(e) => setChartYCol(Number(e.target.value))}
-            className="bg-bg-base rounded px-2 py-1 text-tx-primary font-mono focus:outline-none"
+            className="bg-[#141416] border border-white/10 rounded-lg px-2.5 py-1 text-tx-primary text-xs font-mono focus:outline-none focus:border-accent-primary/50 cursor-pointer"
           >
             {result.columns.map((c, i) => (
-              <option key={c.name} value={i}>
+              <option key={c.name} value={i} className="bg-[#141416] text-tx-primary">
                 {c.name} ({c.dataType})
               </option>
             ))}

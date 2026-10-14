@@ -8,18 +8,32 @@ import { type ResultsTab, ResultsToolbar } from './ResultsToolbar';
 import { ChartView } from './views/ChartView';
 import { EmptyStateView } from './views/EmptyStateView';
 import { ErrorStateView } from './views/ErrorStateView';
+import { GraphView } from './views/GraphView';
 import { GridView } from './views/GridView';
 import { JsonView } from './views/JsonView';
 import { RunningStateView } from './views/RunningStateView';
-import { SchemaView } from './views/SchemaView';
 
 export interface ResultsPanelProps {
   result: QueryResult | null;
   error: string | null;
   isRunning?: boolean;
+  page?: number;
+  pageSize?: number;
+  onNextPage?: () => void;
+  onPrevPage?: () => void;
+  onChangePageSize?: (newSize: number) => void;
 }
 
-export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRunning }) => {
+export const ResultsPanel: React.FC<ResultsPanelProps> = ({
+  result,
+  error,
+  isRunning,
+  page,
+  pageSize,
+  onNextPage,
+  onPrevPage,
+  onChangePageSize,
+}) => {
   const [activeTab, setActiveTab] = useState<ResultsTab>('grid');
   const [filterText, setFilterText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -80,8 +94,20 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
     };
   }, [effectiveResult, filterText]);
 
-  // JSON objects generation
+  // JSON objects generation - compute only when JSON tab is active to preserve memory on large datasets
   const jsonObjects = useMemo(() => {
+    if (!effectiveResult || activeTab !== 'json') return [];
+    return effectiveResult.rows.map((row: QueryRow) => {
+      const obj: Record<string, unknown> = {};
+      effectiveResult.columns.forEach((col, idx) => {
+        obj[col.name] = row[idx];
+      });
+      return obj;
+    });
+  }, [effectiveResult, activeTab]);
+
+  const getOrBuildJsonObjects = () => {
+    if (jsonObjects.length > 0) return jsonObjects;
     if (!effectiveResult) return [];
     return effectiveResult.rows.map((row: QueryRow) => {
       const obj: Record<string, unknown> = {};
@@ -90,12 +116,13 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
       });
       return obj;
     });
-  }, [effectiveResult]);
+  };
 
   // Export functions
   const handleCopyJson = async () => {
     if (!effectiveResult) return;
-    await copyJsonToClipboard(jsonObjects);
+    const objs = getOrBuildJsonObjects();
+    await copyJsonToClipboard(objs);
     setCopied(true);
     setToastMessage('Copied JSON to clipboard');
     setTimeout(() => {
@@ -106,7 +133,8 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
 
   const handleExportJson = () => {
     if (!effectiveResult) return;
-    downloadJsonFile(jsonObjects);
+    const objs = getOrBuildJsonObjects();
+    downloadJsonFile(objs);
     setToastMessage('Exported results as JSON file');
     setTimeout(() => setToastMessage(null), 2000);
   };
@@ -122,7 +150,8 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
   const handleApplyExtensionOption = (optionId: string) => {
     if (!result) return;
     const currentRows: QueryRow[] = manipulatedRows || result.rows;
-    const res = applyDataTransform(optionId, result.columns, currentRows, jsonObjects);
+    const objs = getOrBuildJsonObjects();
+    const res = applyDataTransform(optionId, result.columns, currentRows, objs);
 
     if (res.newRows) {
       setManipulatedRows(res.newRows);
@@ -166,6 +195,12 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
         setActiveTab={setActiveTab}
         rowCount={effectiveResult.rows.length}
         columnCount={result.columns.length}
+        hasMore={result.hasMore}
+        page={page}
+        pageSize={pageSize}
+        onNextPage={onNextPage}
+        onPrevPage={onPrevPage}
+        onChangePageSize={onChangePageSize}
         activeManipulationLabel={activeManipulationLabel}
         onResetManipulation={handleResetManipulation}
         filterText={filterText}
@@ -181,7 +216,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
         {activeTab === 'grid' && <GridView data={filteredResult} />}
         {activeTab === 'json' && <JsonView jsonObjects={jsonObjects} />}
         {activeTab === 'chart' && <ChartView result={result} effectiveResult={effectiveResult} />}
-        {activeTab === 'structure' && <SchemaView columns={result.columns} />}
+        {activeTab === 'graph' && <GraphView result={result} effectiveResult={effectiveResult} />}
       </div>
     </div>
   );

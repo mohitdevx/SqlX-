@@ -52,7 +52,12 @@ impl DatabaseAdapter for PostgresAdapter {
         Ok(())
     }
 
-    async fn execute_query(&self, sql: &str) -> AppResult<QueryResult> {
+    async fn execute_query(
+        &self,
+        sql: &str,
+        limit: Option<usize>,
+        offset: Option<usize>,
+    ) -> AppResult<QueryResult> {
         let statements = split_sql_statements(sql);
         if statements.is_empty() {
             return Ok(super::common::empty_query_result(0, 0));
@@ -62,33 +67,51 @@ impl DatabaseAdapter for PostgresAdapter {
         let mut last_result: Option<QueryResult> = None;
         let mut total_affected = 0u64;
 
+        // Default safety limit of 1,000 rows if none provided, capped at maximum 50,000 for safety
+        let max_fetch = limit.unwrap_or(1000).min(50_000);
+        let skip_rows = offset.unwrap_or(0);
+
         for stmt in &statements {
             let trimmed = stmt.trim();
             if trimmed.is_empty() {
                 continue;
             }
 
-            // Using raw_sql (Simple Query Protocol) prevents "cannot insert multiple commands in prepare statements"
-            let rows = sqlx::raw_sql(trimmed)
-                .fetch_all(&self.pool)
-                .await
-                .map_err(AppError::Database)?;
+            use futures::StreamExt;
+            let mut stream = sqlx::raw_sql(trimmed).fetch(&self.pool);
 
-            let columns_meta = rows
-                .first()
-                .map(|r| super::common::extract_columns_metadata(r.columns()))
-                .unwrap_or_default();
+            let mut columns_meta = Vec::new();
+            let mut result_rows = Vec::with_capacity(max_fetch.min(1000));
+            let mut rows_count = 0u64;
+            let mut has_more = false;
+            let mut skipped = 0usize;
 
-            let mut result_rows = Vec::with_capacity(rows.len());
-            for row in rows.iter() {
-                let mut row_data = Vec::with_capacity(row.columns().len());
-                for (idx, _col) in row.columns().iter().enumerate() {
-                    row_data.push(crate::decode_pg_cell_to_json!(row, idx));
+            while let Some(item) = stream.next().await {
+                let row = item.map_err(AppError::Database)?;
+
+                if columns_meta.is_empty() {
+                    columns_meta = super::common::extract_columns_metadata(row.columns());
                 }
-                result_rows.push(row_data);
+
+                if skipped < skip_rows {
+                    skipped += 1;
+                    continue;
+                }
+
+                if result_rows.len() < max_fetch {
+                    let mut row_data = Vec::with_capacity(row.columns().len());
+                    for (idx, _col) in row.columns().iter().enumerate() {
+                        row_data.push(crate::decode_pg_cell_to_json!(row, idx));
+                    }
+                    result_rows.push(row_data);
+                    rows_count += 1;
+                } else {
+                    has_more = true;
+                    // Stop streaming immediately to avoid memory bloat and OOM
+                    break;
+                }
             }
 
-            let rows_count = rows.len() as u64;
             total_affected += rows_count;
 
             last_result = Some(QueryResult {
@@ -96,6 +119,8 @@ impl DatabaseAdapter for PostgresAdapter {
                 rows: result_rows,
                 rows_affected: rows_count,
                 execution_time_ms: 0,
+                truncated: has_more,
+                has_more,
             });
         }
 

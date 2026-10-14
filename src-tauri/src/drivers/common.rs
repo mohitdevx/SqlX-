@@ -50,6 +50,8 @@ pub fn empty_query_result(execution_time_ms: u64, rows_affected: u64) -> QueryRe
         rows: Vec::new(),
         rows_affected,
         execution_time_ms,
+        truncated: false,
+        has_more: false,
     }
 }
 
