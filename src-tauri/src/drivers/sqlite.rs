@@ -1,12 +1,12 @@
 use super::DatabaseAdapter;
 use crate::error::{AppError, AppResult};
 use crate::models::{
-    ColumnMetadata, ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
+    ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
 };
 use crate::utils::sql_parser::split_sql_statements;
 use async_trait::async_trait;
 use sqlx::sqlite::SqlitePoolOptions;
-use sqlx::{Column, Row, SqlitePool, TypeInfo};
+use sqlx::{Row, SqlitePool};
 use std::time::Instant;
 
 pub struct SqliteAdapter {
@@ -41,12 +41,7 @@ impl DatabaseAdapter for SqliteAdapter {
     async fn execute_query(&self, sql: &str) -> AppResult<QueryResult> {
         let statements = split_sql_statements(sql);
         if statements.is_empty() {
-            return Ok(QueryResult {
-                columns: Vec::new(),
-                rows: Vec::new(),
-                rows_affected: 0,
-                execution_time_ms: 0,
-            });
+            return Ok(super::common::empty_query_result(0, 0));
         }
 
         let start = Instant::now();
@@ -64,46 +59,16 @@ impl DatabaseAdapter for SqliteAdapter {
                 .await
                 .map_err(AppError::Database)?;
 
-            let mut columns_meta = Vec::new();
-            let mut result_rows = Vec::new();
+            let columns_meta = rows
+                .first()
+                .map(|r| super::common::extract_columns_metadata(r.columns()))
+                .unwrap_or_default();
 
-            if let Some(first_row) = rows.first() {
-                for col in first_row.columns() {
-                    columns_meta.push(ColumnMetadata {
-                        name: col.name().to_string(),
-                        data_type: col.type_info().name().to_string(),
-                        nullable: true,
-                    });
-                }
-            }
-
+            let mut result_rows = Vec::with_capacity(rows.len());
             for row in rows.iter() {
-                let mut row_data = Vec::new();
+                let mut row_data = Vec::with_capacity(row.columns().len());
                 for (idx, _col) in row.columns().iter().enumerate() {
-                    let text_val: Result<String, _> = row.try_get(idx);
-                    let json_val = match text_val {
-                        Ok(t) => serde_json::Value::String(t),
-                        Err(_) => {
-                            let int_val: Result<i64, _> = row.try_get(idx);
-                            match int_val {
-                                Ok(i) => serde_json::json!(i),
-                                Err(_) => {
-                                    let float_val: Result<f64, _> = row.try_get(idx);
-                                    match float_val {
-                                        Ok(f) => serde_json::json!(f),
-                                        Err(_) => {
-                                            let bool_val: Result<bool, _> = row.try_get(idx);
-                                            match bool_val {
-                                                Ok(b) => serde_json::json!(b),
-                                                Err(_) => serde_json::Value::Null,
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    };
-                    row_data.push(json_val);
+                    row_data.push(crate::decode_cell_to_json!(row, idx));
                 }
                 result_rows.push(row_data);
             }
@@ -120,21 +85,12 @@ impl DatabaseAdapter for SqliteAdapter {
         }
 
         let execution_time_ms = start.elapsed().as_millis() as u64;
-
-        if let Some(mut res) = last_result {
-            res.execution_time_ms = execution_time_ms;
-            if statements.len() > 1 && res.rows_affected == 0 {
-                res.rows_affected = total_affected;
-            }
-            Ok(res)
-        } else {
-            Ok(QueryResult {
-                columns: Vec::new(),
-                rows: Vec::new(),
-                rows_affected: total_affected,
-                execution_time_ms,
-            })
-        }
+        Ok(super::common::finalize_query_result(
+            last_result,
+            statements.len(),
+            total_affected,
+            execution_time_ms,
+        ))
     }
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {

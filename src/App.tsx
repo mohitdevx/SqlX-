@@ -1,5 +1,7 @@
 import { CommandPalette } from '@/components/common/CommandPalette';
 import { ConnectionsDashboard } from '@/components/connection/ConnectionsDashboard';
+import { EditorSplitPane } from '@/components/editor/EditorSplitPane';
+import { EditorTabBar } from '@/components/editor/EditorTabBar';
 import { SqlEditor } from '@/components/editor/SqlEditor';
 import { type NavView, Sidebar } from '@/components/layout/Sidebar';
 import { TitleBar } from '@/components/layout/TitleBar';
@@ -13,18 +15,12 @@ import { applyTheme } from '@/services/themeEngine';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
 import { useThemeStore } from '@/stores/themeStore';
-import { Clock, Pencil, Plus, Terminal, X } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<NavView>('query');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-
-  // Resizable Split Pane State (percentage height for editor, default 38%)
-  const [editorHeightPct, setEditorHeightPct] = useState(38);
-  const isDraggingRef = useRef(false);
-  const splitContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     tabs,
@@ -41,58 +37,9 @@ export const App: React.FC = () => {
   const { currentTheme } = useThemeStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
-  const [editingTabId, setEditingTabId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
-
-  const handleStartRenameTab = (tabId: string, currentTitle: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setEditingTabId(tabId);
-    setEditingTitle(currentTitle);
-  };
-
-  const handleSaveRenameTab = (tabId: string) => {
-    if (editingTitle.trim()) {
-      renameTab(tabId, editingTitle.trim());
-    }
-    setEditingTabId(null);
-  };
-
   useEffect(() => {
     applyTheme(currentTheme);
   }, [currentTheme]);
-
-  // Dragging logic for resizable divider
-  const handleMouseDown = useCallback(() => {
-    isDraggingRef.current = true;
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
-  }, []);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDraggingRef.current || !splitContainerRef.current) return;
-      const rect = splitContainerRef.current.getBoundingClientRect();
-      const newHeight = ((e.clientY - rect.top) / rect.height) * 100;
-      if (newHeight >= 15 && newHeight <= 85) {
-        setEditorHeightPct(newHeight);
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (isDraggingRef.current) {
-        isDraggingRef.current = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
 
   // Global Keyboard Shortcuts
   useEffect(() => {
@@ -139,7 +86,7 @@ export const App: React.FC = () => {
 
       {/* Main Workspace */}
       <div className="flex-1 flex flex-row overflow-hidden">
-        {/* Rebuilt 3-Section Mouse-Resizable Side Panel */}
+        {/* Mouse-Resizable Side Panel */}
         <Sidebar
           activeView={activeView}
           setActiveView={setActiveView}
@@ -176,138 +123,40 @@ export const App: React.FC = () => {
         {/* SQL Query Workspace (Default) */}
         {activeView === 'query' && (
           <div className="flex-1 flex flex-col overflow-hidden bg-bg-base">
-            {/* Tab Bar */}
-            <div className="h-9 bg-bg-surface border-b border-border-subtle flex items-center justify-between px-1.5 overflow-x-auto transition-colors duration-150">
-              <div className="flex items-center gap-0.5 h-full">
-                {tabs.map((tab) => {
-                  const isActive = tab.id === activeTabId;
-                  const isEditing = editingTabId === tab.id;
-                  return (
-                    <div
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`group relative h-full px-2.5 flex items-center gap-1.5 text-[11px] cursor-pointer transition-all duration-150 ${
-                        isActive
-                          ? 'text-tx-primary font-medium'
-                          : 'text-tx-muted hover:text-tx-secondary'
-                      }`}
-                    >
-                      <Terminal className="w-3 h-3 opacity-60 shrink-0" strokeWidth={1.5} />
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editingTitle}
-                          onChange={(e) => setEditingTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveRenameTab(tab.id);
-                            if (e.key === 'Escape') setEditingTabId(null);
-                          }}
-                          onBlur={() => handleSaveRenameTab(tab.id)}
-                          autoFocus
-                          onClick={(e) => e.stopPropagation()}
-                          className="bg-bg-base border border-accent-primary rounded px-1.5 py-0.2 text-[11px] text-tx-primary font-sans focus:outline-none w-20 max-w-[120px]"
-                        />
-                      ) : (
-                        <span
-                          onDoubleClick={(e) => handleStartRenameTab(tab.id, tab.title, e)}
-                          title="Double-click to rename"
-                          className="truncate max-w-[110px]"
-                        >
-                          {tab.title}
-                        </span>
-                      )}
+            <EditorTabBar
+              tabs={tabs}
+              activeTabId={activeTabId}
+              onSelectTab={setActiveTab}
+              onCreateTab={createTab}
+              onCloseTab={closeTab}
+              onRenameTab={renameTab}
+              activeResult={activeTab?.result}
+            />
 
-                      {!isEditing && (
-                        <button
-                          onClick={(e) => handleStartRenameTab(tab.id, tab.title, e)}
-                          className="opacity-0 group-hover:opacity-60 hover:!opacity-100 p-0.5 rounded text-tx-muted hover:text-tx-primary transition-opacity"
-                          title="Rename Tab"
-                        >
-                          <Pencil className="w-2.5 h-2.5" />
-                        </button>
-                      )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          closeTab(tab.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 hover:opacity-100 hover:text-tx-primary p-0.5 rounded transition-all"
-                        style={{ opacity: isActive ? 0.6 : undefined }}
-                        title="Close Tab (Ctrl+W)"
-                      >
-                        <X className="w-2.5 h-2.5" strokeWidth={2} />
-                      </button>
-                      {/* Active indicator line */}
-                      {isActive && (
-                        <div className="absolute bottom-0 left-3 right-3 h-px bg-accent-primary rounded-full" />
-                      )}
-                    </div>
-                  );
-                })}
-
-                <button
-                  onClick={() => createTab()}
-                  className="w-6 h-6 flex items-center justify-center text-tx-muted hover:text-tx-primary hover:bg-bg-overlay rounded transition-all duration-150 ml-0.5 cursor-pointer"
-                  title="New Tab (Ctrl+T)"
-                >
-                  <Plus className="w-3.5 h-3.5" strokeWidth={1.5} />
-                </button>
-              </div>
-
-              {/* Tab Bar Right: Execution Summary */}
-              <div className="flex items-center gap-2 pr-1 shrink-0">
-                {activeTab?.result && (
-                  <div className="flex items-center gap-1 font-mono text-[10px] text-tx-muted">
-                    <Clock className="w-2.5 h-2.5" strokeWidth={1.5} />
-                    <span>{activeTab.result.executionTimeMs}ms</span>
-                    <span className="text-tx-muted/40">·</span>
-                    <span>{activeTab.result.rows.length} rows</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Split Container: Resizable Editor (Top) + Results Panel (Bottom) */}
-            <div ref={splitContainerRef} className="flex-1 flex flex-col overflow-hidden relative">
-              {/* Editor Workspace */}
-              <div
-                style={{ height: `${editorHeightPct}%` }}
-                className="flex flex-col overflow-hidden bg-editor-bg"
-              >
-                {/* CodeMirror SQL Editor */}
-                <div className="flex-1 overflow-hidden">
-                  {activeTab && (
-                    <SqlEditor
-                      key={activeTab.id}
-                      value={activeTab.sql}
-                      onChange={(sql) => updateSql(activeTab.id, sql)}
-                      onSelectionChange={(sel) => setSelectedSql(sel)}
-                      onExecute={() => {
-                        if (activeConnectionId) {
-                          runActiveQuery(activeConnectionId);
-                        }
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Resizable Divider Handle */}
-              <div
-                onMouseDown={handleMouseDown}
-                className="h-px bg-border-subtle hover:h-[3px] hover:bg-accent-primary cursor-row-resize flex items-center justify-center transition-all duration-150 resize-handle z-10"
-              />
-
-              {/* Results Panel */}
-              <div className="flex-1 overflow-hidden">
+            <EditorSplitPane
+              editor={
+                activeTab && (
+                  <SqlEditor
+                    key={activeTab.id}
+                    value={activeTab.sql}
+                    onChange={(sql) => updateSql(activeTab.id, sql)}
+                    onSelectionChange={(sel) => setSelectedSql(sel)}
+                    onExecute={() => {
+                      if (activeConnectionId) {
+                        runActiveQuery(activeConnectionId);
+                      }
+                    }}
+                  />
+                )
+              }
+              results={
                 <ResultsPanel
                   result={activeTab?.result || null}
                   error={activeTab?.error || null}
                   isRunning={activeTab?.isRunning}
                 />
-              </div>
-            </div>
+              }
+            />
           </div>
         )}
       </div>
