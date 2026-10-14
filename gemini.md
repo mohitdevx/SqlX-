@@ -27,7 +27,7 @@
 
 ---
 
-## 2. Immutable Project Folder Structure
+## 2. Immutable Migrated Project Folder Structure
 
 The project structure is organized into an atomic, folder-driven modular architecture:
 
@@ -74,32 +74,87 @@ SqlX/
 │           ├── mod.rs
 │           ├── sql_parser.rs        # SQL statement splitting & sanitization
 │           └── fs_theme.rs          # Filesystem theme loader & watcher
-├── src/                             # Solid / React / TypeScript UI
+├── src/                             # React 19 / TypeScript UI
 │   ├── components/
 │   │   ├── ui/                      # Atomic Design Primitives
-│   │   │   ├── atoms/               # Button, Input, Badge, IconButton, UnderlineTab
-│   │   │   └── molecules/           # SearchInput, DropdownMenu, Toast, Modal
-│   │   ├── layout/                  # TitleBar, StatusBar, ActivityBar
+│   │   │   ├── index.ts             # Barrel export for all UI primitives
+│   │   │   ├── atoms/
+│   │   │   │   ├── Button.tsx       # Reusable button with variants & sizes
+│   │   │   │   ├── Input.tsx        # Standard text input with focus & error styling
+│   │   │   │   ├── Badge.tsx        # Status, environment & transform pills
+│   │   │   │   ├── IconButton.tsx   # Square icon-only button
+│   │   │   │   └── UnderlineTab.tsx # Tab with NO background & bottom border highlight
+│   │   │   └── molecules/
+│   │   │       ├── SearchInput.tsx  # Search input with icon & clear button
+│   │   │       ├── DropdownMenu.tsx # Popover menu with click-outside detection
+│   │   │       ├── Toast.tsx        # Floating notification toast
+│   │   │       └── Modal.tsx        # Accessible dialog backdrop container
+│   │   ├── layout/
+│   │   │   ├── TitleBar.tsx         # Top window bar & platform window controls
+│   │   │   ├── StatusBar.tsx        # Bottom session telemetry bar
+│   │   │   ├── ActivityBar.tsx      # View navigation activity bar
 │   │   │   ├── Sidebar.tsx          # Resizable sidebar container
-│   │   │   └── sidebar/             # SidebarNav, ConnectionList, SchemaExplorer
-│   │   ├── editor/                  # SqlEditor, EditorTabBar, EditorSplitPane
-│   │   ├── results/                 # ResultsPanel, ResultsToolbar, ExportDropdown, ExtensionsMenu
-│   │   │   └── views/               # GridView, JsonView, ChartView, SchemaView, Running/Error/Empty
-│   │   ├── theme/                   # ThemeManager, ThemeCategories, ThemeCard, ThemeEditorModal
-│   │   ├── connection/              # ConnectionsDashboard, ConnectionCard, ConnectionModal
-│   │   ├── grid/                    # DataGrid (TanStack Virtual & Table)
-│   │   ├── common/                  # CommandPalette, SqlCodeBlock
-│   │   └── views/                   # HomeView, HistoryView, SavedQueriesView, ExtensionsView
-│   ├── data/                        # Static Datasets (builtinThemes.ts, dataExtensions.ts)
-│   │   ├── builtinThemes.ts         # 13 Built-in calibrated themes & category IDs
-│   │   └── dataExtensions.ts        # Data transformation options catalog
-│   ├── utils/                       # Pure Utilities (exportUtils.ts, jsonHighlight.tsx, dataTransforms.ts)
-│   ├── stores/                      # Reactive state (Zustand: connectionStore, queryStore, themeStore)
-│   ├── services/                    # Tauri IPC bridge & theme engine
-│   ├── types/                       # TypeScript interfaces matching Rust DTOs
-│   ├── styles/                      # Tailwind styles & CSS custom variable mappings
+│   │   │   └── sidebar/
+│   │   │       ├── SidebarNav.tsx   # Top navigation links & "+ New Query" CTA
+│   │   │       ├── ConnectionList.tsx # Configured connection list & inline rename
+│   │   │       └── SchemaExplorer.tsx # Database tree, tables, columns & quick queries
+│   │   ├── editor/
+│   │   │   ├── SqlEditor.tsx        # CodeMirror 6 SQL editor with autocomplete
+│   │   │   ├── EditorTabBar.tsx     # Tab strip with rename, close & telemetry
+│   │   │   └── EditorSplitPane.tsx  # Resizable vertical divider for editor/results
+│   │   ├── results/
+│   │   │   ├── ResultsPanel.tsx     # Query results coordinator
+│   │   │   ├── ResultsToolbar.tsx   # Underline mode tabs, search, extensions & export
+│   │   │   ├── ExportDropdown.tsx   # JSON, CSV, Copy JSON export dropdown
+│   │   │   ├── ExtensionsMenu.tsx   # Data extensions popover (white Blocks icon)
+│   │   │   └── views/
+│   │   │       ├── GridView.tsx     # Tabular DataGrid wrapper
+│   │   │       ├── JsonView.tsx     # Syntax-highlighted JSON viewer
+│   │   │       ├── ChartView.tsx    # Minimalist solid bar chart view
+│   │   │       ├── SchemaView.tsx   # Column structure & data type table
+│   │   │       ├── RunningStateView.tsx # Animated query execution pulse
+│   │   │       ├── ErrorStateView.tsx   # Error container with pre-wrap
+│   │   │       └── EmptyStateView.tsx   # Ready to query terminal placeholder
+│   │   ├── theme/
+│   │   │   ├── ThemeManager.tsx     # Appearance view coordinator
+│   │   │   ├── ThemeCategories.tsx  # Underline category filter tabs (no background)
+│   │   │   ├── ThemeCard.tsx        # Theme preview tile & syntax mock
+│   │   │   └── ThemeEditorModal.tsx # Custom theme creator & JSON validator modal
+│   │   ├── connection/
+│   │   │   ├── ConnectionsDashboard.tsx # Management dashboard with search & URI form
+│   │   │   ├── ConnectionCard.tsx       # Expandable connection profile card
+│   │   │   └── ConnectionModal.tsx      # Add/edit connection parameters dialog
+│   │   ├── grid/
+│   │   │   └── DataGrid.tsx         # Virtualized row table (TanStack Virtual)
+│   │   ├── common/
+│   │   │   ├── CommandPalette.tsx   # Ctrl+K command search palette
+│   │   │   └── SqlCodeBlock.tsx     # Standalone syntax-highlighted SQL block
+│   │   └── views/
+│   │       ├── HomeView.tsx         # Welcome screen & quick connection setup
+│   │       ├── HistoryView.tsx      # Past query execution log
+│   │       ├── SavedQueriesView.tsx # Saved query snippets view
+│   │       └── ExtensionsView.tsx   # Installed extensions & tools catalog
+│   ├── data/
+│   │   ├── builtinThemes.ts         # 13 Built-in themes (650+ lines extracted)
+│   │   └── dataExtensions.ts        # Data transformation definitions catalog
+│   ├── utils/
+│   │   ├── exportUtils.ts           # JSON & CSV file downloads & clipboard copy
+│   │   ├── jsonHighlight.tsx        # Tokenized JSON syntax highlighter
+│   │   └── dataTransforms.ts        # Pure data transform algorithms
+│   ├── stores/
+│   │   ├── connectionStore.ts       # Connection sessions & schema state
+│   │   ├── queryStore.ts            # Query tabs, execution & history state
+│   │   └── themeStore.ts            # Active theme & custom theme state
+│   ├── services/
+│   │   ├── tauriBridge.ts           # Type-safe Rust IPC invocation bridge
+│   │   └── themeEngine.ts           # CSS Custom Property injector
+│   ├── types/
+│   │   ├── database.ts              # Database interfaces matching Rust DTOs
+│   │   └── theme.ts                 # Theme color token interfaces
+│   ├── styles/
+│   │   └── globals.css              # Tailwind base, components & utilities
 │   ├── App.tsx                      # Root application layout & keyboard shortcuts
-│   └── main.tsx                     # UI entrypoint
+│   └── main.tsx                     # UI React 19 bootstrap entrypoint
 ├── themes/                          # Default & User JSON Themes
 │   ├── theme.schema.json            # JSON Schema specification for theme validation
 │   ├── dark-solid.json              # Default dark solid theme
