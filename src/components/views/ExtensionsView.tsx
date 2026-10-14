@@ -1,6 +1,6 @@
 import {
   BarChart3,
-  Boxes,
+  Blocks,
   Download,
   FileSpreadsheet,
   GitFork,
@@ -198,7 +198,7 @@ export const ExtensionsView: React.FC = () => {
           {filtered.length === 0 ? (
             <div className="col-span-full py-16 text-center space-y-3">
               <div className="w-10 h-10 rounded-full bg-white/[0.04] flex items-center justify-center mx-auto text-tx-muted">
-                <Boxes className="w-5 h-5 opacity-60" />
+                <Blocks className="w-5 h-5 opacity-60" />
               </div>
               <div>
                 <p className="text-xs font-medium text-tx-secondary">No extensions found</p>

@@ -3,11 +3,11 @@ import type { QueryResult } from '@/types/database';
 import {
   AlertCircle,
   BarChart3,
-  Boxes,
+  Blocks,
+  Braces,
   ChevronDown,
   Clipboard,
   ClipboardCheck,
-  Code2,
   Columns,
   Database,
   Download,
@@ -211,6 +211,25 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
     };
   }, [showExtensionsMenu]);
 
+  // Export dropdown menu state
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    if (showExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportMenu]);
+
   // Reset manipulated rows when incoming result changes
   useEffect(() => {
     if (result !== undefined) {
@@ -283,7 +302,27 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
     const fullJson = JSON.stringify(jsonObjects, null, 2);
     navigator.clipboard.writeText(fullJson);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setToastMessage('Copied JSON to clipboard');
+    setTimeout(() => {
+      setCopied(false);
+      setToastMessage(null);
+    }, 2000);
+  };
+
+  const handleExportJson = () => {
+    if (!effectiveResult) return;
+    const fullJson = JSON.stringify(jsonObjects, null, 2);
+    const blob = new Blob([fullJson], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `sqlx_export_${Date.now()}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowExportMenu(false);
+    setToastMessage('Exported results as JSON file');
+    setTimeout(() => setToastMessage(null), 2000);
   };
 
   const handleExportCsv = () => {
@@ -307,6 +346,9 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setShowExportMenu(false);
+    setToastMessage('Exported results as CSV file');
+    setTimeout(() => setToastMessage(null), 2000);
   };
 
   // Extension Manipulation Handler
@@ -708,16 +750,17 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
 
       {/* Redesigned Top Panel Bar */}
       <div className="h-10 bg-bg-surface/90 border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none relative z-30">
-        {/* Left Side: Segmented Mode Selector & Meta */}
-        <div className="flex items-center space-x-2.5 min-w-0">
-          {/* Segmented Tab Pill Controller */}
-          <div className="flex items-center space-x-0.5 p-0.5 rounded-lg bg-white/[0.04]">
+        {/* Left Side: Mode Tabs & Meta */}
+        <div className="flex items-center space-x-3 min-w-0 h-full">
+          {/* Mode Selector Tabs (Grid, JSON, Chart, Schema) */}
+          <div className="flex items-center space-x-4 h-full">
             <button
+              type="button"
               onClick={() => setActiveTab('grid')}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-1 h-full text-xs font-medium transition-all cursor-pointer border-b-2 ${
                 activeTab === 'grid'
-                  ? 'bg-white/[0.08] text-tx-primary font-semibold shadow-xs'
-                  : 'text-tx-muted hover:text-tx-primary'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-tx-muted hover:text-tx-primary'
               }`}
             >
               <Table className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -725,23 +768,25 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveTab('json')}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-1 h-full text-xs font-medium transition-all cursor-pointer border-b-2 ${
                 activeTab === 'json'
-                  ? 'bg-white/[0.08] text-tx-primary font-semibold shadow-xs'
-                  : 'text-tx-muted hover:text-tx-primary'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-tx-muted hover:text-tx-primary'
               }`}
             >
-              <Code2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+              <Braces className="w-3.5 h-3.5" strokeWidth={1.5} />
               <span>JSON</span>
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveTab('chart')}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-1 h-full text-xs font-medium transition-all cursor-pointer border-b-2 ${
                 activeTab === 'chart'
-                  ? 'bg-white/[0.08] text-tx-primary font-semibold shadow-xs'
-                  : 'text-tx-muted hover:text-tx-primary'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-tx-muted hover:text-tx-primary'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -749,11 +794,12 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
             </button>
 
             <button
+              type="button"
               onClick={() => setActiveTab('structure')}
-              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 px-1 h-full text-xs font-medium transition-all cursor-pointer border-b-2 ${
                 activeTab === 'structure'
-                  ? 'bg-white/[0.08] text-tx-primary font-semibold shadow-xs'
-                  : 'text-tx-muted hover:text-tx-primary'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-tx-muted hover:text-tx-primary'
               }`}
             >
               <Columns className="w-3.5 h-3.5" strokeWidth={1.5} />
@@ -767,6 +813,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
               <Sparkles className="w-3 h-3 shrink-0" />
               <span>{activeManipulationLabel}</span>
               <button
+                type="button"
                 onClick={handleResetManipulation}
                 className="hover:text-tx-primary ml-1 text-tx-muted p-0.5 transition-colors cursor-pointer"
                 title="Reset to original query output"
@@ -777,7 +824,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
           )}
         </div>
 
-        {/* Right Side: Search, Extensions Menu, Copy Clipboard, Export */}
+        {/* Right Side: Search, Extensions Menu, Export Dropdown */}
         <div className="flex items-center space-x-2 shrink-0">
           {/* Quick Filter */}
           <div className="relative">
@@ -799,6 +846,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
           {/* Extensions Menu Button & Popover */}
           <div className="relative" ref={extensionsMenuRef}>
             <button
+              type="button"
               onClick={() => setShowExtensionsMenu((prev) => !prev)}
               className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                 showExtensionsMenu
@@ -807,7 +855,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
               }`}
               title="Apply Data Manipulation Extensions"
             >
-              <Boxes className="w-3.5 h-3.5 text-accent-primary" />
+              <Blocks className="w-3.5 h-3.5 text-white" />
               <span>Extensions</span>
               <ChevronDown
                 className={`w-3 h-3 text-tx-muted transition-transform ${showExtensionsMenu ? 'rotate-180' : ''}`}
@@ -820,11 +868,12 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
                 {/* Popover Header */}
                 <div className="flex items-center justify-between pb-2 border-b border-white/10">
                   <div className="flex items-center space-x-1.5">
-                    <Boxes className="w-4 h-4 text-accent-primary" />
+                    <Blocks className="w-4 h-4 text-white" />
                     <span className="text-xs font-semibold text-tx-primary">Data Extensions</span>
                   </div>
                   {activeManipulationLabel && (
                     <button
+                      type="button"
                       onClick={handleResetManipulation}
                       className="flex items-center space-x-1 text-[11px] text-tx-muted hover:text-tx-primary px-1.5 py-0.5 rounded hover:bg-white/[0.04] transition-colors cursor-pointer"
                     >
@@ -845,6 +894,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
                       const isSel = ext.id === selectedExtensionId;
                       return (
                         <button
+                          type="button"
                           key={ext.id}
                           onClick={() => setSelectedExtensionId(ext.id)}
                           className={`flex items-center space-x-2 p-2 rounded-lg text-left text-xs transition-all cursor-pointer ${
@@ -877,6 +927,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
                   <div className="max-h-52 overflow-y-auto custom-scrollbar space-y-1 pr-0.5">
                     {selectedExtension.options.map((opt) => (
                       <button
+                        type="button"
                         key={opt.id}
                         onClick={() => handleApplyExtensionOption(opt.id)}
                         className="w-full flex items-center justify-between p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.07] text-left transition-all cursor-pointer group"
@@ -905,29 +956,64 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({ result, error, isRun
             )}
           </div>
 
-          {/* Copy JSON with clean Clipboard icon */}
-          <button
-            onClick={handleCopyJson}
-            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono cursor-pointer"
-            title="Copy Results as JSON (Clipboard)"
-          >
-            {copied ? (
-              <ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} />
-            ) : (
-              <Clipboard className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
-            )}
-            <span>{copied ? 'Copied' : 'JSON'}</span>
-          </button>
+          {/* Single Export Dropdown Option (JSON, CSV, Copy JSON) */}
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowExportMenu((prev) => !prev)}
+              className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                showExportMenu
+                  ? 'bg-white/[0.1] text-tx-primary'
+                  : 'bg-white/[0.04] hover:bg-white/[0.08] text-tx-secondary hover:text-tx-primary'
+              }`}
+              title="Export options"
+            >
+              <Download className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
+              <span>Export</span>
+              <ChevronDown
+                className={`w-3 h-3 text-tx-muted transition-transform ${showExportMenu ? 'rotate-180' : ''}`}
+              />
+            </button>
 
-          {/* Export CSV Button */}
-          <button
-            onClick={handleExportCsv}
-            className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-tx-secondary hover:text-tx-primary transition-all text-xs font-mono cursor-pointer"
-            title="Export Results as CSV"
-          >
-            <Download className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
-            <span>CSV</span>
-          </button>
+            {showExportMenu && (
+              <div className="absolute right-0 top-full mt-1.5 w-44 rounded-xl bg-bg-surface border border-white/10 shadow-2xl p-1.5 z-50 animate-fade-in font-sans space-y-0.5">
+                <button
+                  type="button"
+                  onClick={handleExportJson}
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-tx-secondary hover:text-tx-primary hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+                >
+                  <Braces className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
+                  <span>Export JSON</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportCsv}
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-tx-secondary hover:text-tx-primary hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
+                  <span>Export CSV</span>
+                </button>
+
+                <div className="my-1 border-t border-white/10" />
+
+                <button
+                  type="button"
+                  onClick={handleCopyJson}
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs text-tx-secondary hover:text-tx-primary hover:bg-white/[0.06] transition-colors cursor-pointer text-left"
+                >
+                  {copied ? (
+                    <ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} />
+                  ) : (
+                    <Clipboard className="w-3.5 h-3.5 text-tx-muted" strokeWidth={1.5} />
+                  )}
+                  <span className={copied ? 'text-emerald-400 font-medium' : ''}>
+                    {copied ? 'Copied JSON!' : 'Copy JSON'}
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

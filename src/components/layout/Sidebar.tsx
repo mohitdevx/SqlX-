@@ -2,8 +2,8 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useQueryStore } from '@/stores/queryStore';
 import type { ConnectionConfig } from '@/types/database';
 import {
+  Blocks,
   Bookmark,
-  Boxes,
   Calendar,
   Check,
   ChevronDown,
@@ -366,7 +366,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               <div className="flex items-center space-x-2.5">
-                <Boxes className="w-3.5 h-3.5" />
+                <Blocks className="w-3.5 h-3.5 text-white" />
                 <span>Extensions</span>
               </div>
             </button>
