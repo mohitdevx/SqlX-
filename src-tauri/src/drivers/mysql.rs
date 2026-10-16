@@ -96,7 +96,7 @@ impl DatabaseAdapter for MysqlAdapter {
                 if result_rows.len() < max_fetch {
                     let mut row_data = Vec::with_capacity(row.columns().len());
                     for (idx, _col) in row.columns().iter().enumerate() {
-                        row_data.push(crate::decode_cell_to_json!(row, idx));
+                        row_data.push(crate::decode_mysql_cell_to_json!(row, idx));
                     }
                     result_rows.push(row_data);
                     rows_count += 1;
@@ -160,7 +160,7 @@ impl DatabaseAdapter for MysqlAdapter {
 
     async fn get_table_columns(&self, table_name: &str) -> AppResult<Vec<ColumnSchema>> {
         let query_str = format!(
-            "SELECT column_name, data_type, is_nullable, column_default FROM information_schema.columns WHERE table_name = '{}' ORDER BY ordinal_position;",
+            "SELECT column_name, data_type, is_nullable, column_default, column_key FROM information_schema.columns WHERE table_name = '{}' ORDER BY ordinal_position;",
             table_name.replace('\'', "''")
         );
         let rows = sqlx::raw_sql(&query_str)
@@ -174,7 +174,10 @@ impl DatabaseAdapter for MysqlAdapter {
                 name: r.get::<String, _>("column_name"),
                 data_type: r.get::<String, _>("data_type"),
                 is_nullable: r.get::<String, _>("is_nullable") == "YES",
-                is_primary_key: false,
+                is_primary_key: r
+                    .try_get::<String, _>("column_key")
+                    .map(|k| k == "PRI")
+                    .unwrap_or(false),
                 default_value: r.try_get::<String, _>("column_default").ok(),
             })
             .collect();

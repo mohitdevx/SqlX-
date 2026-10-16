@@ -1,44 +1,192 @@
 use crate::models::{ColumnMetadata, QueryResult};
 
-/// Helper macro to extract a column value from an `sqlx::Row` as a `serde_json::Value`.
-/// Attempts extraction as String, then i64, then f64, then bool, falling back to Null.
 #[macro_export]
-macro_rules! decode_cell_to_json {
+macro_rules! decode_mysql_cell_to_json {
     ($row:expr, $idx:expr) => {{
-        let text_val: Result<String, _> = $row.try_get($idx);
-        match text_val {
-            Ok(t) => serde_json::Value::String(t),
-            Err(_) => {
-                let int_val: Result<i64, _> = $row.try_get($idx);
-                match int_val {
-                    Ok(i) => serde_json::json!(i),
-                    Err(_) => {
-                        let float_val: Result<f64, _> = $row.try_get($idx);
-                        match float_val {
-                            Ok(f) => serde_json::json!(f),
-                            Err(_) => {
-                                let bool_val: Result<bool, _> = $row.try_get($idx);
-                                match bool_val {
-                                    Ok(b) => serde_json::json!(b),
-                                    Err(_) => serde_json::Value::Null,
-                                }
-                            }
-                        }
+        use sqlx::Row;
+        use sqlx::ValueRef;
+        let is_null = match $row.try_get_raw($idx) {
+            Ok(ref val_ref) => val_ref.is_null(),
+            Err(_) => false,
+        };
+
+        if is_null {
+            serde_json::Value::Null
+        } else {
+            // Check String first
+            if let Ok(val) = $row.try_get::<String, _>($idx) {
+                serde_json::Value::String(val)
+            // MySQL integer types - crucial for AUTO_INCREMENT / IDs
+            } else if let Ok(val) = $row.try_get::<i32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i16, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u16, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i8, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u8, _>($idx) {
+                serde_json::json!(val)
+            // Floats
+            } else if let Ok(val) = $row.try_get::<f64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<f32, _>($idx) {
+                serde_json::json!(val)
+            // Boolean
+            } else if let Ok(val) = $row.try_get::<bool, _>($idx) {
+                serde_json::json!(val)
+            // Date & Time
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDateTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::DateTime<chrono::Utc>, _>($idx) {
+                serde_json::Value::String(val.to_rfc3339())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDate, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            // UUID
+            } else if let Ok(val) = $row.try_get::<uuid::Uuid, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            // JSON
+            } else if let Ok(val) = $row.try_get::<serde_json::Value, _>($idx) {
+                val
+            // Binary / raw bytes
+            } else if let Ok(val) = $row.try_get::<Vec<u8>, _>($idx) {
+                match String::from_utf8(val) {
+                    Ok(s) => serde_json::Value::String(s),
+                    Err(e) => {
+                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        serde_json::Value::String(format!("0x{}", hex_str))
                     }
                 }
+            } else {
+                serde_json::Value::Null
             }
         }
     }};
 }
 
-/// Helper macro to extract a PostgreSQL column value, with native JSONB support first.
+#[macro_export]
+macro_rules! decode_sqlite_cell_to_json {
+    ($row:expr, $idx:expr) => {{
+        use sqlx::Row;
+        use sqlx::ValueRef;
+        let is_null = match $row.try_get_raw($idx) {
+            Ok(ref val_ref) => val_ref.is_null(),
+            Err(_) => false,
+        };
+
+        if is_null {
+            serde_json::Value::Null
+        } else {
+            if let Ok(val) = $row.try_get::<String, _>($idx) {
+                serde_json::Value::String(val)
+            } else if let Ok(val) = $row.try_get::<i64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i16, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u16, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i8, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<u8, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<f64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<f32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<bool, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDateTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::DateTime<chrono::Utc>, _>($idx) {
+                serde_json::Value::String(val.to_rfc3339())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDate, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<uuid::Uuid, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<serde_json::Value, _>($idx) {
+                val
+            } else if let Ok(val) = $row.try_get::<Vec<u8>, _>($idx) {
+                match String::from_utf8(val) {
+                    Ok(s) => serde_json::Value::String(s),
+                    Err(e) => {
+                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        serde_json::Value::String(format!("0x{}", hex_str))
+                    }
+                }
+            } else {
+                serde_json::Value::Null
+            }
+        }
+    }};
+}
+
 #[macro_export]
 macro_rules! decode_pg_cell_to_json {
     ($row:expr, $idx:expr) => {{
-        let val: Result<serde_json::Value, _> = $row.try_get($idx);
-        match val {
-            Ok(v) => v,
-            Err(_) => $crate::decode_cell_to_json!($row, $idx),
+        use sqlx::Row;
+        use sqlx::ValueRef;
+        let is_null = match $row.try_get_raw($idx) {
+            Ok(ref val_ref) => val_ref.is_null(),
+            Err(_) => false,
+        };
+
+        if is_null {
+            serde_json::Value::Null
+        } else {
+            // Native JSONB first for Postgres
+            if let Ok(val) = $row.try_get::<serde_json::Value, _>($idx) {
+                val
+            } else if let Ok(val) = $row.try_get::<String, _>($idx) {
+                serde_json::Value::String(val)
+            } else if let Ok(val) = $row.try_get::<i64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<i16, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<f64, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<f32, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<bool, _>($idx) {
+                serde_json::json!(val)
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDateTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::DateTime<chrono::Utc>, _>($idx) {
+                serde_json::Value::String(val.to_rfc3339())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveDate, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<chrono::NaiveTime, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<uuid::Uuid, _>($idx) {
+                serde_json::Value::String(val.to_string())
+            } else if let Ok(val) = $row.try_get::<Vec<u8>, _>($idx) {
+                match String::from_utf8(val) {
+                    Ok(s) => serde_json::Value::String(s),
+                    Err(e) => {
+                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        serde_json::Value::String(format!("0x{}", hex_str))
+                    }
+                }
+            } else {
+                serde_json::Value::Null
+            }
         }
     }};
 }

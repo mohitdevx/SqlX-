@@ -87,7 +87,7 @@ impl DatabaseAdapter for SqliteAdapter {
                 if result_rows.len() < max_fetch {
                     let mut row_data = Vec::with_capacity(row.columns().len());
                     for (idx, _col) in row.columns().iter().enumerate() {
-                        row_data.push(crate::decode_cell_to_json!(row, idx));
+                        row_data.push(crate::decode_sqlite_cell_to_json!(row, idx));
                     }
                     result_rows.push(row_data);
                     rows_count += 1;
