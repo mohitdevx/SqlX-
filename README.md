@@ -200,14 +200,6 @@ Output binaries will be written to:
 - **Windows**: `src-tauri/target/release/bundle/nsis/` (`.exe`) and `bundle/msi/` (`.msi`)
 - **macOS**: `src-tauri/target/release/bundle/dmg/` (`.dmg`)
 
-### Automated Releases via GitHub Actions
-
-A production workflow is provided in [`.github/workflows/release.yml`](.github/workflows/release.yml). When you push a version tag, GitHub Actions automatically compiles and packages native binaries for both Linux and Windows:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
 
 ---
 
