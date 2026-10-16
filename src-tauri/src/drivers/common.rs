@@ -61,7 +61,11 @@ macro_rules! decode_mysql_cell_to_json {
                 match String::from_utf8(val) {
                     Ok(s) => serde_json::Value::String(s),
                     Err(e) => {
-                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        let hex_str: String = e
+                            .into_bytes()
+                            .iter()
+                            .map(|b| format!("{:02X}", b))
+                            .collect();
                         serde_json::Value::String(format!("0x{}", hex_str))
                     }
                 }
@@ -125,7 +129,11 @@ macro_rules! decode_sqlite_cell_to_json {
                 match String::from_utf8(val) {
                     Ok(s) => serde_json::Value::String(s),
                     Err(e) => {
-                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        let hex_str: String = e
+                            .into_bytes()
+                            .iter()
+                            .map(|b| format!("{:02X}", b))
+                            .collect();
                         serde_json::Value::String(format!("0x{}", hex_str))
                     }
                 }
@@ -180,7 +188,11 @@ macro_rules! decode_pg_cell_to_json {
                 match String::from_utf8(val) {
                     Ok(s) => serde_json::Value::String(s),
                     Err(e) => {
-                        let hex_str: String = e.into_bytes().iter().map(|b| format!("{:02X}", b)).collect();
+                        let hex_str: String = e
+                            .into_bytes()
+                            .iter()
+                            .map(|b| format!("{:02X}", b))
+                            .collect();
                         serde_json::Value::String(format!("0x{}", hex_str))
                     }
                 }

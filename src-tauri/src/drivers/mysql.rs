@@ -1,8 +1,6 @@
 use super::DatabaseAdapter;
 use crate::error::{AppError, AppResult};
-use crate::models::{
-    ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema,
-};
+use crate::models::{ColumnSchema, ConnectionConfig, DatabaseTree, QueryResult, TableSchema};
 use crate::utils::sql_parser::split_sql_statements;
 use async_trait::async_trait;
 use sqlx::mysql::MySqlPoolOptions;
@@ -129,9 +127,7 @@ impl DatabaseAdapter for MysqlAdapter {
     }
 
     async fn get_schema_tree(&self) -> AppResult<DatabaseTree> {
-        let db_rows = sqlx::raw_sql("SHOW DATABASES;")
-            .fetch_all(&self.pool)
-            .await;
+        let db_rows = sqlx::raw_sql("SHOW DATABASES;").fetch_all(&self.pool).await;
 
         let databases: Vec<String> = match db_rows {
             Ok(rows) => rows.iter().filter_map(|r| r.try_get(0).ok()).collect(),
