@@ -1,13 +1,8 @@
-import {
-  autocompletion,
-  closeBrackets,
-  closeBracketsKeymap,
-  completionKeymap,
-} from '@codemirror/autocomplete';
+import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Prec } from '@codemirror/state';
 import {
   EditorView,
   highlightActiveLine,
@@ -42,9 +37,44 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
   onSelectionChangeRef.current = onSelectionChange;
   onExecuteRef.current = onExecute;
 
+  const blockEnterRef = useRef(false);
+  const savedCursorRef = useRef<number | null>(null);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: initial document setup only
   useEffect(() => {
     if (!containerRef.current) return;
+
+    const checkIsCtrlEnter = (e: KeyboardEvent) => {
+      const isEnter =
+        e.key === 'Enter' ||
+        e.key === 'Return' ||
+        e.code === 'Enter' ||
+        e.code === 'NumpadEnter' ||
+        e.keyCode === 13 ||
+        e.which === 13;
+      const isModifier = e.ctrlKey || e.metaKey;
+      return isEnter && isModifier;
+    };
+
+    const triggerExecutionWithLockedCursor = () => {
+      blockEnterRef.current = true;
+      if (viewRef.current) {
+        savedCursorRef.current = viewRef.current.state.selection.main.head;
+      }
+      if (onExecuteRef.current) {
+        onExecuteRef.current();
+      }
+      setTimeout(() => {
+        blockEnterRef.current = false;
+        if (viewRef.current && savedCursorRef.current !== null) {
+          const pos = Math.min(savedCursorRef.current, viewRef.current.state.doc.length);
+          viewRef.current.dispatch({
+            selection: { anchor: pos, head: pos },
+            scrollIntoView: false,
+          });
+        }
+      }, 50);
+    };
 
     // Dynamic syntax highlighting driven by CSS Custom Properties
     const sqlHighlightStyle = HighlightStyle.define([
@@ -122,25 +152,78 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
         sql({ dialect: PostgreSQL }),
         syntaxHighlighting(sqlHighlightStyle),
         customTheme,
+        // Transaction filter: completely drops any doc changes or caret drops while Ctrl+Enter is active
+        EditorState.transactionFilter.of((tr) => {
+          if (blockEnterRef.current) {
+            if (tr.docChanged) return [];
+            if (tr.selection && savedCursorRef.current !== null) {
+              const pos = Math.min(savedCursorRef.current, tr.startState.doc.length);
+              return [tr, { selection: { anchor: pos, head: pos } }];
+            }
+          }
+          return tr;
+        }),
+        Prec.highest(
+          EditorView.domEventHandlers({
+            keydown(event, _view) {
+              if (checkIsCtrlEnter(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                triggerExecutionWithLockedCursor();
+                return true;
+              }
+              return false;
+            },
+          })
+        ),
+        Prec.highest(
+          keymap.of([
+            {
+              key: 'Mod-Enter',
+              run: () => {
+                triggerExecutionWithLockedCursor();
+                return true;
+              },
+            },
+            {
+              key: 'Ctrl-Enter',
+              run: () => {
+                triggerExecutionWithLockedCursor();
+                return true;
+              },
+            },
+            {
+              key: 'Mod-Return',
+              run: () => {
+                triggerExecutionWithLockedCursor();
+                return true;
+              },
+            },
+            {
+              key: 'Ctrl-Return',
+              run: () => {
+                triggerExecutionWithLockedCursor();
+                return true;
+              },
+            },
+            {
+              key: 'F5',
+              run: () => {
+                if (onExecuteRef.current) onExecuteRef.current();
+                return true;
+              },
+            },
+          ])
+        ),
         keymap.of([
-          ...defaultKeymap,
+          ...defaultKeymap.filter(
+            (binding) =>
+              binding.key !== 'Mod-Enter' &&
+              binding.key !== 'Ctrl-Enter' &&
+              binding.key !== 'Mod-Return'
+          ),
           ...historyKeymap,
           ...closeBracketsKeymap,
-          ...completionKeymap,
-          {
-            key: 'F5',
-            run: () => {
-              if (onExecuteRef.current) onExecuteRef.current();
-              return true;
-            },
-          },
-          {
-            key: 'Ctrl-Enter',
-            run: () => {
-              if (onExecuteRef.current) onExecuteRef.current();
-              return true;
-            },
-          },
         ]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
@@ -168,7 +251,59 @@ export const SqlEditor: React.FC<SqlEditorProps> = ({
 
     viewRef.current = view;
 
+    // Capture-phase DOM interception to prevent any newline insertion or cursor drop
+    let ctrlPressed = false;
+    const handleKeyDownCapture = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        ctrlPressed = true;
+      }
+      if (checkIsCtrlEnter(e)) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        triggerExecutionWithLockedCursor();
+      }
+    };
+
+    const handleKeyUpCapture = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) {
+        ctrlPressed = false;
+      }
+    };
+
+    const handleBeforeInputCapture = (e: InputEvent) => {
+      if (
+        blockEnterRef.current ||
+        (ctrlPressed && (e.inputType === 'insertParagraph' || e.inputType === 'insertLineBreak'))
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      }
+    };
+
+    const handleWindowKeyDownCapture = (e: KeyboardEvent) => {
+      if (checkIsCtrlEnter(e)) {
+        if (containerRef.current?.contains(document.activeElement)) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          triggerExecutionWithLockedCursor();
+        }
+      }
+    };
+
+    const container = containerRef.current;
+    container.addEventListener('keydown', handleKeyDownCapture, { capture: true });
+    container.addEventListener('keyup', handleKeyUpCapture, { capture: true });
+    container.addEventListener('beforeinput', handleBeforeInputCapture, { capture: true });
+    window.addEventListener('keydown', handleWindowKeyDownCapture, { capture: true });
+
     return () => {
+      container.removeEventListener('keydown', handleKeyDownCapture, { capture: true });
+      container.removeEventListener('keyup', handleKeyUpCapture, { capture: true });
+      container.removeEventListener('beforeinput', handleBeforeInputCapture, { capture: true });
+      window.removeEventListener('keydown', handleWindowKeyDownCapture, { capture: true });
       view.destroy();
     };
   }, []);

@@ -91,10 +91,10 @@ export const ExtensionsMenu: React.FC<ExtensionsMenuProps> = ({
                     type="button"
                     key={ext.id}
                     onClick={() => setSelectedExtensionId(ext.id)}
-                    className={`flex items-center space-x-2 p-2 rounded-lg text-left text-xs transition-all cursor-pointer ${
+                    className={`flex items-center space-x-2 p-2 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                       isSel
                         ? 'bg-accent-primary/15 text-tx-primary border border-accent-primary/30'
-                        : 'bg-white/[0.03] hover:bg-white/[0.06] text-tx-secondary hover:text-tx-primary'
+                        : 'bg-bg-surface hover:bg-bg-surface/10 text-tx-secondary hover:text-tx-primary'
                     }`}
                   >
                     <Icon
@@ -127,7 +127,7 @@ export const ExtensionsMenu: React.FC<ExtensionsMenuProps> = ({
                     onApplyOption(opt.id);
                     setIsOpen(false);
                   }}
-                  className="w-full flex items-center justify-between p-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.07] text-left transition-all cursor-pointer group"
+                  className="w-full flex items-center justify-between p-2 rounded-lg bg-bg-surface hover:bg-bg-surface/10 text-left transition-colors cursor-pointer group"
                 >
                   <div className="min-w-0 flex-1 pr-2">
                     <div className="text-xs font-medium text-tx-primary group-hover:text-accent-primary transition-colors flex items-center space-x-1.5">

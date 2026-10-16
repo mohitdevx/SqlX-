@@ -50,10 +50,20 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // F5 or Ctrl+Enter -> Run query
-      if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key === 'Enter')) {
+      const isEnter =
+        e.key === 'Enter' ||
+        e.key === 'Return' ||
+        e.code === 'Enter' ||
+        e.code === 'NumpadEnter' ||
+        e.keyCode === 13 ||
+        e.which === 13;
+      const isModifier = e.ctrlKey || e.metaKey;
+      if (e.key === 'F5' || (isModifier && isEnter)) {
         e.preventDefault();
-        if (activeConnectionId) {
-          runActiveQuery(activeConnectionId);
+        if (!document.activeElement?.closest('.cm-editor')) {
+          if (activeConnectionId) {
+            runActiveQuery(activeConnectionId);
+          }
         }
       }
       // Ctrl+T -> New Query Tab

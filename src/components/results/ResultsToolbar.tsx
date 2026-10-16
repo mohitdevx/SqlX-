@@ -78,7 +78,7 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
   }, [isPageSizeOpen]);
 
   return (
-    <div className="h-10 bg-bg-surface/90 border-b border-border-subtle flex items-center justify-between px-2 sm:px-3 text-xs select-none relative z-30 flex-nowrap overflow-x-auto overflow-y-hidden no-scrollbar gap-2">
+    <div className="h-10 bg-bg-surface/90 border-b border-border-subtle flex items-center justify-between px-2 sm:px-3 text-xs select-none relative z-50 flex-nowrap overflow-x-auto no-scrollbar gap-2">
       {/* Left Side: Mode Tabs (Grid, JSON, Chart, Graph) */}
       <div className="flex items-center gap-2 h-full shrink-0 flex-nowrap min-w-0">
         <div className="flex items-center gap-1 sm:gap-2 h-full flex-nowrap">
