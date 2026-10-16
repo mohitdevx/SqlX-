@@ -17,9 +17,9 @@ export const SearchInput: React.FC<SearchInputProps> = ({
   autoFocus = false,
 }) => {
   return (
-    <div className={`relative flex items-center ${className}`}>
+    <div className={`relative flex items-center min-w-0 ${className}`}>
       <Search
-        className="w-3.5 h-3.5 absolute left-2.5 text-tx-muted pointer-events-none"
+        className="w-3.5 h-3.5 absolute left-2 text-tx-muted pointer-events-none"
         strokeWidth={1.5}
       />
       <input
@@ -28,7 +28,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className="w-full bg-white/[0.04] focus:bg-white/[0.07] rounded-lg pl-8 pr-7 py-1 text-xs text-tx-primary placeholder:text-tx-muted focus:outline-none font-sans transition-colors"
+        className="w-full bg-white/[0.04] focus:bg-white/[0.07] rounded-lg pl-7 pr-6 py-1 text-xs text-tx-primary placeholder:text-tx-muted focus:outline-none font-sans transition-colors"
       />
       {value && (
         <button

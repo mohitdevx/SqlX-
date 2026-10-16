@@ -22,8 +22,8 @@ export type ResultsTab = 'grid' | 'json' | 'chart' | 'graph';
 export interface ResultsToolbarProps {
   activeTab: ResultsTab;
   setActiveTab: (tab: ResultsTab) => void;
-  rowCount: number;
-  columnCount: number;
+  rowCount?: number;
+  columnCount?: number;
   hasMore?: boolean;
   page?: number;
   pageSize?: number;
@@ -44,7 +44,6 @@ export interface ResultsToolbarProps {
 export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
   activeTab,
   setActiveTab,
-  rowCount,
   hasMore = false,
   page = 1,
   pageSize = 1000,
@@ -79,22 +78,24 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
   }, [isPageSizeOpen]);
 
   return (
-    <div className="h-10 bg-bg-surface/90 border-b border-border-subtle flex items-center justify-between px-3 text-xs select-none relative z-30">
-      {/* Left Side: Mode Tabs (Grid, JSON, Chart, Graph) & Meta */}
-      <div className="flex items-center space-x-3 min-w-0 h-full">
-        <div className="flex items-center space-x-4 h-full">
+    <div className="h-10 bg-bg-surface/90 border-b border-border-subtle flex items-center justify-between px-2 sm:px-3 text-xs select-none relative z-30 flex-nowrap overflow-x-auto overflow-y-hidden no-scrollbar gap-2">
+      {/* Left Side: Mode Tabs (Grid, JSON, Chart, Graph) */}
+      <div className="flex items-center gap-2 h-full shrink-0 flex-nowrap min-w-0">
+        <div className="flex items-center gap-1 sm:gap-2 h-full flex-nowrap">
           <UnderlineTab
             isActive={activeTab === 'grid'}
             onClick={() => setActiveTab('grid')}
-            icon={<Table className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            icon={<Table className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
+            className="whitespace-nowrap px-1.5 sm:px-2"
           >
-            Grid ({rowCount.toLocaleString()})
+            Grid
           </UnderlineTab>
 
           <UnderlineTab
             isActive={activeTab === 'json'}
             onClick={() => setActiveTab('json')}
-            icon={<Braces className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            icon={<Braces className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
+            className="whitespace-nowrap px-1.5 sm:px-2"
           >
             JSON
           </UnderlineTab>
@@ -102,7 +103,8 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
           <UnderlineTab
             isActive={activeTab === 'chart'}
             onClick={() => setActiveTab('chart')}
-            icon={<BarChart3 className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            icon={<BarChart3 className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
+            className="whitespace-nowrap px-1.5 sm:px-2"
           >
             Chart
           </UnderlineTab>
@@ -110,7 +112,8 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
           <UnderlineTab
             isActive={activeTab === 'graph'}
             onClick={() => setActiveTab('graph')}
-            icon={<LineChart className="w-3.5 h-3.5" strokeWidth={1.5} />}
+            icon={<LineChart className="w-3.5 h-3.5 shrink-0" strokeWidth={1.5} />}
+            className="whitespace-nowrap px-1.5 sm:px-2"
           >
             Graph
           </UnderlineTab>
@@ -118,13 +121,13 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
 
         {/* Active Data Manipulation Badge */}
         {activeManipulationLabel && (
-          <div className="flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-[11px] font-mono">
+          <div className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-accent-primary/10 border border-accent-primary/20 text-accent-primary text-[11px] font-mono shrink-0 whitespace-nowrap">
             <Sparkles className="w-3 h-3 shrink-0" />
-            <span>{activeManipulationLabel}</span>
+            <span className="truncate max-w-[100px]">{activeManipulationLabel}</span>
             <button
               type="button"
               onClick={onResetManipulation}
-              className="hover:text-tx-primary ml-1 text-tx-muted p-0.5 transition-colors cursor-pointer"
+              className="hover:text-tx-primary ml-0.5 text-tx-muted p-0.5 transition-colors cursor-pointer"
               title="Reset to original query output"
             >
               <X className="w-2.5 h-2.5" />
@@ -134,10 +137,10 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
       </div>
 
       {/* Right Side: Pagination, Search, Extensions Menu, Export Dropdown */}
-      <div className="flex items-center space-x-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 flex-nowrap">
         {/* Pagination Controls */}
         {(hasMore || page > 1) && (
-          <div className="flex items-center space-x-1 bg-white/[0.04] border border-white/[0.08] rounded-md px-1 py-0.5">
+          <div className="flex items-center gap-0.5 bg-white/[0.04] border border-white/[0.08] rounded-md px-1 py-0.5 shrink-0 whitespace-nowrap">
             <button
               type="button"
               onClick={onPrevPage}
@@ -147,7 +150,9 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <span className="text-[11px] font-mono text-tx-secondary px-1">Page {page}</span>
+            <span className="text-[11px] font-mono text-tx-secondary px-0.5 sm:px-1">
+              Page {page}
+            </span>
             <button
               type="button"
               onClick={onNextPage}
@@ -160,12 +165,12 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
 
             {/* Custom Dark Dropdown for Page Size */}
             {onChangePageSize && (
-              <div className="relative border-l border-white/10 pl-1" ref={pageSizeRef}>
+              <div className="relative border-l border-white/10 pl-1 ml-0.5" ref={pageSizeRef}>
                 <button
                   type="button"
                   onClick={() => setIsPageSizeOpen((prev) => !prev)}
-                  className="flex items-center space-x-1 px-1.5 py-0.5 rounded text-[11px] font-mono text-tx-muted hover:text-tx-primary hover:bg-white/[0.06] transition-colors cursor-pointer"
-                  title="Rows per page"
+                  className="flex items-center gap-0.5 px-1 py-0.5 rounded text-[11px] font-mono text-tx-muted hover:text-tx-primary hover:bg-white/[0.06] transition-colors cursor-pointer"
+                  title="Rows per page limit"
                 >
                   <span>{pageSize >= 1000 ? `${pageSize / 1000}k` : pageSize} / p</span>
                   <ChevronDown
@@ -203,11 +208,11 @@ export const ResultsToolbar: React.FC<ResultsToolbarProps> = ({
         <SearchInput
           value={filterText}
           onChange={setFilterText}
-          placeholder="Search rows..."
-          className="w-32 sm:w-40"
+          placeholder="Search..."
+          className="w-20 sm:w-28 md:w-36 min-w-[70px] shrink transition-all"
         />
 
-        <div className="h-4 w-[1px] bg-white/10" />
+        <div className="h-4 w-[1px] bg-white/10 shrink-0 mx-0.5" />
 
         <ExtensionsMenu
           onApplyOption={onApplyExtensionOption}
